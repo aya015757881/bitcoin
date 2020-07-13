@@ -60,7 +60,7 @@ public:
         return *this;
     }
 
-    CHash160& Reset() {
+    CHash160 &Reset() {
         sha.Reset();
         return *this;
     }
@@ -93,7 +93,7 @@ inline uint256 Hash(const T1 p1begin, const T1 p1end,
 template<typename T1>
 inline uint160 Hash160(const T1 pbegin, const T1 pend)
 {
-    static unsigned char pblank[1] = {};
+    static unsigned char pblank[1] = { };
     uint160 result;
     CHash160().Write(pbegin == pend ? pblank : (const unsigned char*)&pbegin[0], (pend - pbegin) * sizeof(pbegin[0]))
               .Finalize((unsigned char*)&result);
@@ -101,14 +101,14 @@ inline uint160 Hash160(const T1 pbegin, const T1 pend)
 }
 
 /** Compute the 160-bit hash of a vector. */
-inline uint160 Hash160(const std::vector<unsigned char>& vch)
+inline uint160 Hash160(const std::vector<unsigned char> &vch)
 {
     return Hash160(vch.begin(), vch.end());
 }
 
 /** Compute the 160-bit hash of a vector. */
 template<unsigned int N>
-inline uint160 Hash160(const prevector<N, unsigned char>& vch)
+inline uint160 Hash160(const prevector<N, unsigned char> &vch)
 {
     return Hash160(vch.begin(), vch.end());
 }
@@ -149,7 +149,7 @@ public:
     }
 
     template<typename T>
-    CHashWriter& operator<<(const T& obj) {
+    CHashWriter& operator<<(const T &obj) {
         // Serialize to this stream
         ::Serialize(*this, obj);
         return (*this);
@@ -164,16 +164,14 @@ private:
     Source *source;
 
 public:
-    explicit CHashVerifier(Source* source_) : CHashWriter(source_->GetType(), source_->GetVersion()), source(source_) {}
+    explicit CHashVerifier(Source *source_) : CHashWriter(source_->GetType(), source_->GetVersion()), source(source_) { }
 
-    void read(char* pch, size_t nSize)
-    {
+    void read(char *pch, size_t nSize) {
         source->read(pch, nSize);
         this->write(pch, nSize);
     }
 
-    void ignore(size_t nSize)
-    {
+    void ignore(size_t nSize) {
         char data[1024];
         while (nSize > 0) {
             size_t now = std::min<size_t>(nSize, 1024);
@@ -183,8 +181,7 @@ public:
     }
 
     template<typename T>
-    CHashVerifier<Source>& operator>>(T&& obj)
-    {
+    CHashVerifier<Source> &operator>>(T &&obj) {
         // Unserialize from this stream
         ::Unserialize(*this, obj);
         return (*this);
@@ -193,14 +190,13 @@ public:
 
 /** Compute the 256-bit hash of an object's serialization. */
 template<typename T>
-uint256 SerializeHash(const T& obj, int nType=SER_GETHASH, int nVersion=PROTOCOL_VERSION)
-{
+uint256 SerializeHash(const T &obj, int nType = SER_GETHASH, int nVersion = PROTOCOL_VERSION) {
     CHashWriter ss(nType, nVersion);
     ss << obj;
     return ss.GetHash();
 }
 
-unsigned int MurmurHash3(unsigned int nHashSeed, const std::vector<unsigned char>& vDataToHash);
+unsigned int MurmurHash3(unsigned int nHashSeed, const std::vector<unsigned char> &vDataToHash);
 
 void BIP32Hash(const ChainCode &chainCode, unsigned int nChild, unsigned char header, const unsigned char data[32], unsigned char output[64]);
 
