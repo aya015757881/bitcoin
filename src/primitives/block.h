@@ -28,15 +28,11 @@ public:
     uint32_t nBits;
     uint32_t nNonce;
 
-    CBlockHeader()
-    {
-        SetNull();
-    }
+    CBlockHeader() { SetNull(); }
 
     SERIALIZE_METHODS(CBlockHeader, obj) { READWRITE(obj.nVersion, obj.hashPrevBlock, obj.hashMerkleRoot, obj.nTime, obj.nBits, obj.nNonce); }
 
-    void SetNull()
-    {
+    void SetNull() {
         nVersion = 0;
         hashPrevBlock.SetNull();
         hashMerkleRoot.SetNull();
@@ -45,22 +41,19 @@ public:
         nNonce = 0;
     }
 
-    bool IsNull() const
-    {
+    bool IsNull() const {
         return (nBits == 0);
     }
 
     uint256 GetHash() const;
 
-    int64_t GetBlockTime() const
-    {
+    int64_t GetBlockTime() const {
         return (int64_t)nTime;
     }
 };
 
 
-class CBlock : public CBlockHeader
-{
+class CBlock : public CBlockHeader {
 public:
     // network and disk
     std::vector<CTransactionRef> vtx;
@@ -68,32 +61,25 @@ public:
     // memory only
     mutable bool fChecked;
 
-    CBlock()
-    {
-        SetNull();
-    }
+    CBlock() { SetNull(); }
 
-    CBlock(const CBlockHeader &header)
-    {
+    CBlock(const CBlockHeader &header) {
         SetNull();
         *(static_cast<CBlockHeader*>(this)) = header;
     }
 
-    SERIALIZE_METHODS(CBlock, obj)
-    {
+    SERIALIZE_METHODS(CBlock, obj) {
         READWRITEAS(CBlockHeader, obj);
         READWRITE(obj.vtx);
     }
 
-    void SetNull()
-    {
+    void SetNull() {
         CBlockHeader::SetNull();
         vtx.clear();
         fChecked = false;
     }
 
-    CBlockHeader GetBlockHeader() const
-    {
+    CBlockHeader GetBlockHeader() const {
         CBlockHeader block;
         block.nVersion       = nVersion;
         block.hashPrevBlock  = hashPrevBlock;
@@ -115,27 +101,20 @@ struct CBlockLocator
 {
     std::vector<uint256> vHave;
 
-    CBlockLocator() {}
+    CBlockLocator() { }
 
-    explicit CBlockLocator(const std::vector<uint256>& vHaveIn) : vHave(vHaveIn) {}
+    explicit CBlockLocator(const std::vector<uint256> &vHaveIn): vHave(vHaveIn) {}
 
-    SERIALIZE_METHODS(CBlockLocator, obj)
-    {
+    SERIALIZE_METHODS(CBlockLocator, obj) {
         int nVersion = s.GetVersion();
         if (!(s.GetType() & SER_GETHASH))
             READWRITE(nVersion);
         READWRITE(obj.vHave);
     }
 
-    void SetNull()
-    {
-        vHave.clear();
-    }
+    void SetNull() { vHave.clear(); }
 
-    bool IsNull() const
-    {
-        return vHave.empty();
-    }
+    bool IsNull() const { return vHave.empty(); }
 };
 
 #endif // BITCOIN_PRIMITIVES_BLOCK_H
