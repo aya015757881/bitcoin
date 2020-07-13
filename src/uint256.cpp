@@ -10,7 +10,7 @@
 #include <string.h>
 
 template <unsigned int BITS>
-base_blob<BITS>::base_blob(const std::vector<unsigned char>& vch)
+base_blob<BITS>::base_blob(const std::vector<unsigned char> &vch)
 {
     assert(vch.size() == sizeof(data));
     memcpy(data, vch.data(), sizeof(data));
@@ -23,7 +23,7 @@ std::string base_blob<BITS>::GetHex() const
 }
 
 template <unsigned int BITS>
-void base_blob<BITS>::SetHex(const char* psz)
+void base_blob<BITS>::SetHex(const char *psz)
 {
     memset(data, 0, sizeof(data));
 
@@ -51,7 +51,7 @@ void base_blob<BITS>::SetHex(const char* psz)
 }
 
 template <unsigned int BITS>
-void base_blob<BITS>::SetHex(const std::string& str)
+void base_blob<BITS>::SetHex(const std::string &str)
 {
     SetHex(str.c_str());
 }

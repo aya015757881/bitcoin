@@ -14,29 +14,29 @@
 #if defined(USE_ASM)
 namespace sha256_sse4
 {
-void Transform(uint32_t* s, const unsigned char* chunk, size_t blocks);
+void Transform(uint32_t *s, const unsigned char *chunk, size_t blocks);
 }
 #endif
 #endif
 
 namespace sha256d64_sse41
 {
-void Transform_4way(unsigned char* out, const unsigned char* in);
+void Transform_4way(unsigned char *out, const unsigned char *in);
 }
 
 namespace sha256d64_avx2
 {
-void Transform_8way(unsigned char* out, const unsigned char* in);
+void Transform_8way(unsigned char *out, const unsigned char *in);
 }
 
 namespace sha256d64_shani
 {
-void Transform_2way(unsigned char* out, const unsigned char* in);
+void Transform_2way(unsigned char *out, const unsigned char *in);
 }
 
 namespace sha256_shani
 {
-void Transform(uint32_t* s, const unsigned char* chunk, size_t blocks);
+void Transform(uint32_t *s, const unsigned char *chunk, size_t blocks);
 }
 
 // Internal implementation code.
@@ -53,7 +53,7 @@ uint32_t inline sigma0(uint32_t x) { return (x >> 7 | x << 25) ^ (x >> 18 | x <<
 uint32_t inline sigma1(uint32_t x) { return (x >> 17 | x << 15) ^ (x >> 19 | x << 13) ^ (x >> 10); }
 
 /** One round of SHA-256. */
-void inline Round(uint32_t a, uint32_t b, uint32_t c, uint32_t& d, uint32_t e, uint32_t f, uint32_t g, uint32_t& h, uint32_t k)
+void inline Round(uint32_t a, uint32_t b, uint32_t c, uint32_t &d, uint32_t e, uint32_t f, uint32_t g, uint32_t &h, uint32_t k)
 {
     uint32_t t1 = h + Sigma1(e) + Ch(e, f, g) + k;
     uint32_t t2 = Sigma0(a) + Maj(a, b, c);
@@ -62,7 +62,7 @@ void inline Round(uint32_t a, uint32_t b, uint32_t c, uint32_t& d, uint32_t e, u
 }
 
 /** Initialize SHA-256 state. */
-void inline Initialize(uint32_t* s)
+void inline Initialize(uint32_t *s)
 {
     s[0] = 0x6a09e667ul;
     s[1] = 0xbb67ae85ul;
@@ -75,7 +75,7 @@ void inline Initialize(uint32_t* s)
 }
 
 /** Perform a number of SHA-256 transformations, processing 64-byte chunks. */
-void Transform(uint32_t* s, const unsigned char* chunk, size_t blocks)
+void Transform(uint32_t *s, const unsigned char *chunk, size_t blocks)
 {
     while (blocks--) {
         uint32_t a = s[0], b = s[1], c = s[2], d = s[3], e = s[4], f = s[5], g = s[6], h = s[7];
@@ -161,7 +161,7 @@ void Transform(uint32_t* s, const unsigned char* chunk, size_t blocks)
     }
 }
 
-void TransformD64(unsigned char* out, const unsigned char* in)
+void TransformD64(unsigned char *out, const unsigned char *in)
 {
     // Transform 1
     uint32_t a = 0x6a09e667ul;
@@ -418,7 +418,7 @@ typedef void (*TransformType)(uint32_t*, const unsigned char*, size_t);
 typedef void (*TransformD64Type)(unsigned char*, const unsigned char*);
 
 template<TransformType tr>
-void TransformD64Wrapper(unsigned char* out, const unsigned char* in)
+void TransformD64Wrapper(unsigned char *out, const unsigned char *in)
 {
     uint32_t s[8];
     static const unsigned char padding1[64] = {
@@ -634,10 +634,11 @@ CSHA256::CSHA256() : bytes(0)
     sha256::Initialize(s);
 }
 
-CSHA256& CSHA256::Write(const unsigned char* data, size_t len)
+CSHA256 &CSHA256::Write(const unsigned char *data, size_t len)
 {
     const unsigned char* end = data + len;
     size_t bufsize = bytes % 64;
+
     if (bufsize && bufsize + len >= 64) {
         // Fill the buffer, and process it.
         memcpy(buf + bufsize, data, 64 - bufsize);
@@ -646,17 +647,20 @@ CSHA256& CSHA256::Write(const unsigned char* data, size_t len)
         Transform(s, buf, 1);
         bufsize = 0;
     }
+
     if (end - data >= 64) {
         size_t blocks = (end - data) / 64;
         Transform(s, data, blocks);
         data += 64 * blocks;
         bytes += 64 * blocks;
     }
+
     if (end > data) {
         // Fill the buffer with what remains.
         memcpy(buf + bufsize, data, end - data);
         bytes += end - data;
     }
+
     return *this;
 }
 
@@ -684,7 +688,7 @@ CSHA256& CSHA256::Reset()
     return *this;
 }
 
-void SHA256D64(unsigned char* out, const unsigned char* in, size_t blocks)
+void SHA256D64(unsigned char *out, const unsigned char *in, size_t blocks)
 {
     if (TransformD64_8way) {
         while (blocks >= 8) {

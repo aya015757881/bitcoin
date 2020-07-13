@@ -23,23 +23,23 @@ private:
     const CChainParams& m_params;
 
 public:
-    explicit DestinationEncoder(const CChainParams& params) : m_params(params) {}
+    explicit DestinationEncoder(const CChainParams &params) : m_params(params) { }
 
-    std::string operator()(const PKHash& id) const
+    std::string operator()(const PKHash &id) const
     {
         std::vector<unsigned char> data = m_params.Base58Prefix(CChainParams::PUBKEY_ADDRESS);
         data.insert(data.end(), id.begin(), id.end());
         return EncodeBase58Check(data);
     }
 
-    std::string operator()(const ScriptHash& id) const
+    std::string operator()(const ScriptHash &id) const
     {
         std::vector<unsigned char> data = m_params.Base58Prefix(CChainParams::SCRIPT_ADDRESS);
         data.insert(data.end(), id.begin(), id.end());
         return EncodeBase58Check(data);
     }
 
-    std::string operator()(const WitnessV0KeyHash& id) const
+    std::string operator()(const WitnessV0KeyHash &id) const
     {
         std::vector<unsigned char> data = {0};
         data.reserve(33);
@@ -47,7 +47,7 @@ public:
         return bech32::Encode(m_params.Bech32HRP(), data);
     }
 
-    std::string operator()(const WitnessV0ScriptHash& id) const
+    std::string operator()(const WitnessV0ScriptHash &id) const
     {
         std::vector<unsigned char> data = {0};
         data.reserve(53);
@@ -55,24 +55,25 @@ public:
         return bech32::Encode(m_params.Bech32HRP(), data);
     }
 
-    std::string operator()(const WitnessUnknown& id) const
+    std::string operator()(const WitnessUnknown &id) const
     {
-        if (id.version < 1 || id.version > 16 || id.length < 2 || id.length > 40) {
+        if (id.version < 1 || id.version > 16 || id.length < 2 || id.length > 40)
             return {};
-        }
+
         std::vector<unsigned char> data = {(unsigned char)id.version};
         data.reserve(1 + (id.length * 8 + 4) / 5);
         ConvertBits<8, 5, true>([&](unsigned char c) { data.push_back(c); }, id.program, id.program + id.length);
         return bech32::Encode(m_params.Bech32HRP(), data);
     }
 
-    std::string operator()(const CNoDestination& no) const { return {}; }
+    std::string operator()(const CNoDestination &no) const { return {}; }
 };
 
-CTxDestination DecodeDestination(const std::string& str, const CChainParams& params)
+CTxDestination DecodeDestination(const std::string &str, const CChainParams &params)
 {
     std::vector<unsigned char> data;
     uint160 hash;
+
     if (DecodeBase58Check(str, data, 21)) {
         // base58-encoded Bitcoin addresses.
         // Public-key-hash-addresses have version 0 (or 111 testnet).
@@ -115,13 +116,15 @@ CTxDestination DecodeDestination(const std::string& str, const CChainParams& par
                 }
                 return CNoDestination();
             }
-            if (version > 16 || data.size() < 2 || data.size() > 40) {
+            
+            if (version > 16 || data.size() < 2 || data.size() > 40)
                 return CNoDestination();
-            }
+
             WitnessUnknown unk;
             unk.version = version;
             std::copy(data.begin(), data.end(), unk.program);
             unk.length = data.size();
+            
             return unk;
         }
     }
@@ -129,10 +132,11 @@ CTxDestination DecodeDestination(const std::string& str, const CChainParams& par
 }
 } // namespace
 
-CKey DecodeSecret(const std::string& str)
+CKey DecodeSecret(const std::string &str)
 {
     CKey key;
     std::vector<unsigned char> data;
+
     if (DecodeBase58Check(str, data, 34)) {
         const std::vector<unsigned char>& privkey_prefix = Params().Base58Prefix(CChainParams::SECRET_KEY);
         if ((data.size() == 32 + privkey_prefix.size() || (data.size() == 33 + privkey_prefix.size() && data.back() == 1)) &&
@@ -141,62 +145,68 @@ CKey DecodeSecret(const std::string& str)
             key.Set(data.begin() + privkey_prefix.size(), data.begin() + privkey_prefix.size() + 32, compressed);
         }
     }
-    if (!data.empty()) {
+
+    if (!data.empty())
         memory_cleanse(data.data(), data.size());
-    }
+
     return key;
 }
 
-std::string EncodeSecret(const CKey& key)
+std::string EncodeSecret(const CKey &key)
 {
     assert(key.IsValid());
     std::vector<unsigned char> data = Params().Base58Prefix(CChainParams::SECRET_KEY);
     data.insert(data.end(), key.begin(), key.end());
-    if (key.IsCompressed()) {
+    
+    if (key.IsCompressed())
         data.push_back(1);
-    }
+
     std::string ret = EncodeBase58Check(data);
     memory_cleanse(data.data(), data.size());
+    
     return ret;
 }
 
-CExtPubKey DecodeExtPubKey(const std::string& str)
+CExtPubKey DecodeExtPubKey(const std::string &str)
 {
     CExtPubKey key;
     std::vector<unsigned char> data;
+
     if (DecodeBase58Check(str, data, 78)) {
         const std::vector<unsigned char>& prefix = Params().Base58Prefix(CChainParams::EXT_PUBLIC_KEY);
-        if (data.size() == BIP32_EXTKEY_SIZE + prefix.size() && std::equal(prefix.begin(), prefix.end(), data.begin())) {
+        if (data.size() == BIP32_EXTKEY_SIZE + prefix.size() && std::equal(prefix.begin(), prefix.end(), data.begin()))
             key.Decode(data.data() + prefix.size());
-        }
     }
+
     return key;
 }
 
-std::string EncodeExtPubKey(const CExtPubKey& key)
+std::string EncodeExtPubKey(const CExtPubKey &key)
 {
     std::vector<unsigned char> data = Params().Base58Prefix(CChainParams::EXT_PUBLIC_KEY);
     size_t size = data.size();
     data.resize(size + BIP32_EXTKEY_SIZE);
     key.Encode(data.data() + size);
     std::string ret = EncodeBase58Check(data);
+    
     return ret;
 }
 
-CExtKey DecodeExtKey(const std::string& str)
+CExtKey DecodeExtKey(const std::string &str)
 {
     CExtKey key;
     std::vector<unsigned char> data;
+    
     if (DecodeBase58Check(str, data, 78)) {
         const std::vector<unsigned char>& prefix = Params().Base58Prefix(CChainParams::EXT_SECRET_KEY);
-        if (data.size() == BIP32_EXTKEY_SIZE + prefix.size() && std::equal(prefix.begin(), prefix.end(), data.begin())) {
+        if (data.size() == BIP32_EXTKEY_SIZE + prefix.size() && std::equal(prefix.begin(), prefix.end(), data.begin()))
             key.Decode(data.data() + prefix.size());
-        }
     }
+
     return key;
 }
 
-std::string EncodeExtKey(const CExtKey& key)
+std::string EncodeExtKey(const CExtKey &key)
 {
     std::vector<unsigned char> data = Params().Base58Prefix(CChainParams::EXT_SECRET_KEY);
     size_t size = data.size();
@@ -204,25 +214,26 @@ std::string EncodeExtKey(const CExtKey& key)
     key.Encode(data.data() + size);
     std::string ret = EncodeBase58Check(data);
     memory_cleanse(data.data(), data.size());
+    
     return ret;
 }
 
-std::string EncodeDestination(const CTxDestination& dest)
+std::string EncodeDestination(const CTxDestination &dest)
 {
     return boost::apply_visitor(DestinationEncoder(Params()), dest);
 }
 
-CTxDestination DecodeDestination(const std::string& str)
+CTxDestination DecodeDestination(const std::string &str)
 {
     return DecodeDestination(str, Params());
 }
 
-bool IsValidDestinationString(const std::string& str, const CChainParams& params)
+bool IsValidDestinationString(const std::string &str, const CChainParams &params)
 {
     return IsValidDestination(DecodeDestination(str, params));
 }
 
-bool IsValidDestinationString(const std::string& str)
+bool IsValidDestinationString(const std::string &str)
 {
     return IsValidDestinationString(str, Params());
 }
