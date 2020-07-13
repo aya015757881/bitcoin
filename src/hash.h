@@ -31,12 +31,12 @@ public:
         sha.Reset().Write(buf, CSHA256::OUTPUT_SIZE).Finalize(hash);
     }
 
-    CHash256& Write(const unsigned char *data, size_t len) {
+    CHash256 &Write(const unsigned char *data, size_t len) {
         sha.Write(data, len);
         return *this;
     }
 
-    CHash256& Reset() {
+    CHash256 &Reset() {
         sha.Reset();
         return *this;
     }
@@ -161,7 +161,7 @@ template<typename Source>
 class CHashVerifier : public CHashWriter
 {
 private:
-    Source* source;
+    Source *source;
 
 public:
     explicit CHashVerifier(Source* source_) : CHashWriter(source_->GetType(), source_->GetVersion()), source(source_) {}

@@ -82,63 +82,71 @@ private:
         MODE_INVALID, //!< network rule violation (DoS value may be set)
         MODE_ERROR,   //!< run-time error
     } m_mode{MODE_VALID};
-    Result m_result{};
+    Result m_result{ };
     std::string m_reject_reason;
     std::string m_debug_message;
 public:
     bool Invalid(Result result,
                  const std::string &reject_reason="",
-                 const std::string &debug_message="")
-    {
+                 const std::string &debug_message="") {
+
         m_result = result;
         m_reject_reason = reject_reason;
         m_debug_message = debug_message;
-        if (m_mode != MODE_ERROR) m_mode = MODE_INVALID;
+        
+        if (m_mode != MODE_ERROR)
+            m_mode = MODE_INVALID;
+        
         return false;
     }
-    bool Error(const std::string& reject_reason)
-    {
+
+    bool Error(const std::string &reject_reason) {
+        
         if (m_mode == MODE_VALID)
             m_reject_reason = reject_reason;
+        
         m_mode = MODE_ERROR;
+        
         return false;
     }
+
     bool IsValid() const { return m_mode == MODE_VALID; }
     bool IsInvalid() const { return m_mode == MODE_INVALID; }
     bool IsError() const { return m_mode == MODE_ERROR; }
     Result GetResult() const { return m_result; }
     std::string GetRejectReason() const { return m_reject_reason; }
     std::string GetDebugMessage() const { return m_debug_message; }
-    std::string ToString() const
-    {
-        if (IsValid()) {
-            return "Valid";
-        }
+    
+    std::string ToString() const {
 
-        if (!m_debug_message.empty()) {
+        if (IsValid())
+            return "Valid";
+
+        if (!m_debug_message.empty())
             return m_reject_reason + ", " + m_debug_message;
-        }
 
         return m_reject_reason;
     }
 };
 
-class TxValidationState : public ValidationState<TxValidationResult> {};
-class BlockValidationState : public ValidationState<BlockValidationResult> {};
+class TxValidationState : public ValidationState<TxValidationResult> { };
+class BlockValidationState : public ValidationState<BlockValidationResult> { };
 
 // These implement the weight = (stripped_size * 4) + witness_size formula,
 // using only serialization with and without witness data. As witness_size
 // is equal to total_size - stripped_size, this formula is identical to:
 // weight = (stripped_size * 3) + total_size.
-static inline int64_t GetTransactionWeight(const CTransaction& tx)
+static inline int64_t GetTransactionWeight(const CTransaction &tx)
 {
     return ::GetSerializeSize(tx, PROTOCOL_VERSION | SERIALIZE_TRANSACTION_NO_WITNESS) * (WITNESS_SCALE_FACTOR - 1) + ::GetSerializeSize(tx, PROTOCOL_VERSION);
 }
-static inline int64_t GetBlockWeight(const CBlock& block)
+
+static inline int64_t GetBlockWeight(const CBlock &block)
 {
     return ::GetSerializeSize(block, PROTOCOL_VERSION | SERIALIZE_TRANSACTION_NO_WITNESS) * (WITNESS_SCALE_FACTOR - 1) + ::GetSerializeSize(block, PROTOCOL_VERSION);
 }
-static inline int64_t GetTransactionInputWeight(const CTxIn& txin)
+
+static inline int64_t GetTransactionInputWeight(const CTxIn &txin)
 {
     // scriptWitness size is added here because witnesses and txins are split up in segwit serialization.
     return ::GetSerializeSize(txin, PROTOCOL_VERSION | SERIALIZE_TRANSACTION_NO_WITNESS) * (WITNESS_SCALE_FACTOR - 1) + ::GetSerializeSize(txin, PROTOCOL_VERSION) + ::GetSerializeSize(txin.scriptWitness.stack, PROTOCOL_VERSION);

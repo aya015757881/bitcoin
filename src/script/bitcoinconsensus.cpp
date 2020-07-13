@@ -13,18 +13,15 @@
 namespace {
 
 /** A class that deserializes a single CTransaction one time. */
-class TxInputStream
-{
+class TxInputStream {
 public:
-    TxInputStream(int nTypeIn, int nVersionIn, const unsigned char *txTo, size_t txToLen) :
-    m_type(nTypeIn),
-    m_version(nVersionIn),
-    m_data(txTo),
-    m_remaining(txToLen)
-    {}
+    TxInputStream(int nTypeIn, int nVersionIn, const unsigned char *txTo, size_t txToLen): m_type(nTypeIn),
+                                                                                            m_version(nVersionIn),
+                                                                                            m_data(txTo),
+                                                                                            m_remaining(txToLen) { }
 
-    void read(char* pch, size_t nSize)
-    {
+    void read(char *pch, size_t nSize) {
+        
         if (nSize > m_remaining)
             throw std::ios_base::failure(std::string(__func__) + ": end of data");
 
@@ -40,8 +37,7 @@ public:
     }
 
     template<typename T>
-    TxInputStream& operator>>(T&& obj)
-    {
+    TxInputStream &operator>>(T &&obj) {
         ::Unserialize(*this, obj);
         return *this;
     }
@@ -59,6 +55,7 @@ inline int set_error(bitcoinconsensus_error* ret, bitcoinconsensus_error serror)
 {
     if (ret)
         *ret = serror;
+    
     return 0;
 }
 
@@ -73,21 +70,23 @@ ECCryptoClosure instance_of_eccryptoclosure;
 /** Check that all specified flags are part of the libconsensus interface. */
 static bool verify_flags(unsigned int flags)
 {
-    return (flags & ~(bitcoinconsensus_SCRIPT_FLAGS_VERIFY_ALL)) == 0;
+    return !(flags & ~bitcoinconsensus_SCRIPT_FLAGS_VERIFY_ALL);
 }
 
 static int verify_script(const unsigned char *scriptPubKey, unsigned int scriptPubKeyLen, CAmount amount,
                                     const unsigned char *txTo        , unsigned int txToLen,
                                     unsigned int nIn, unsigned int flags, bitcoinconsensus_error* err)
 {
-    if (!verify_flags(flags)) {
+    if (!verify_flags(flags))
         return set_error(err, bitcoinconsensus_ERR_INVALID_FLAGS);
-    }
+
     try {
         TxInputStream stream(SER_NETWORK, PROTOCOL_VERSION, txTo, txToLen);
         CTransaction tx(deserialize, stream);
+        
         if (nIn >= tx.vin.size())
             return set_error(err, bitcoinconsensus_ERR_TX_INDEX);
+        
         if (GetSerializeSize(tx, PROTOCOL_VERSION) != txToLen)
             return set_error(err, bitcoinconsensus_ERR_TX_SIZE_MISMATCH);
 
@@ -95,7 +94,9 @@ static int verify_script(const unsigned char *scriptPubKey, unsigned int scriptP
         set_error(err, bitcoinconsensus_ERR_OK);
 
         PrecomputedTransactionData txdata(tx);
+        
         return VerifyScript(tx.vin[nIn].scriptSig, CScript(scriptPubKey, scriptPubKey + scriptPubKeyLen), &tx.vin[nIn].scriptWitness, flags, TransactionSignatureChecker(&tx, nIn, amount, txdata), nullptr);
+
     } catch (const std::exception&) {
         return set_error(err, bitcoinconsensus_ERR_TX_DESERIALIZE); // Error deserializing
     }
