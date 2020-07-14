@@ -28,7 +28,7 @@ uint32_t static inline ReadLE32(const unsigned char* ptr)
     return le32toh(x);
 }
 
-uint64_t static inline ReadLE64(const unsigned char* ptr)
+uint64_t static inline ReadLE64(const unsigned char *ptr)
 {
     uint64_t x;
     memcpy((char*)&x, ptr, 8);
@@ -67,7 +67,7 @@ uint64_t static inline ReadBE64(const unsigned char* ptr)
     return be64toh(x);
 }
 
-void static inline WriteBE32(unsigned char* ptr, uint32_t x)
+void static inline WriteBE32(unsigned char *ptr, uint32_t x)
 {
     uint32_t v = htobe32(x);
     memcpy(ptr, (char*)&v, 4);

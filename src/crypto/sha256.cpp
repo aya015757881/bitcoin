@@ -636,7 +636,7 @@ CSHA256::CSHA256() : bytes(0)
 
 CSHA256 &CSHA256::Write(const unsigned char *data, size_t len)
 {
-    const unsigned char* end = data + len;
+    const unsigned char *end = data + len;
     size_t bufsize = bytes % 64;
 
     if (bufsize && bufsize + len >= 64) {
@@ -681,7 +681,7 @@ void CSHA256::Finalize(unsigned char hash[OUTPUT_SIZE])
     WriteBE32(hash + 28, s[7]);
 }
 
-CSHA256& CSHA256::Reset()
+CSHA256 &CSHA256::Reset()
 {
     bytes = 0;
     sha256::Initialize(s);

@@ -1259,40 +1259,43 @@ public:
 };
 
 template <class T>
-uint256 GetPrevoutHash(const T& txTo)
-{
+uint256 GetPrevoutHash(const T &txTo) {
+    
     CHashWriter ss(SER_GETHASH, 0);
-    for (const auto& txin : txTo.vin) {
+    
+    for (const auto &txin : txTo.vin)
         ss << txin.prevout;
-    }
+
     return ss.GetHash();
 }
 
 template <class T>
-uint256 GetSequenceHash(const T& txTo)
-{
+uint256 GetSequenceHash(const T &txTo) {
+    
     CHashWriter ss(SER_GETHASH, 0);
-    for (const auto& txin : txTo.vin) {
+    
+    for (const auto &txin : txTo.vin)
         ss << txin.nSequence;
-    }
+
     return ss.GetHash();
 }
 
 template <class T>
-uint256 GetOutputsHash(const T& txTo)
+uint256 GetOutputsHash(const T &txTo)
 {
     CHashWriter ss(SER_GETHASH, 0);
-    for (const auto& txout : txTo.vout) {
+
+    for (const auto &txout : txTo.vout)
         ss << txout;
-    }
+
     return ss.GetHash();
 }
 
 } // namespace
 
 template <class T>
-void PrecomputedTransactionData::Init(const T& txTo)
-{
+void PrecomputedTransactionData::Init(const T &txTo) {
+    
     assert(!m_ready);
 
     // Cache is calculated only for transactions with witness
@@ -1306,8 +1309,7 @@ void PrecomputedTransactionData::Init(const T& txTo)
 }
 
 template <class T>
-PrecomputedTransactionData::PrecomputedTransactionData(const T& txTo)
-{
+PrecomputedTransactionData::PrecomputedTransactionData(const T &txTo) {
     Init(txTo);
 }
 

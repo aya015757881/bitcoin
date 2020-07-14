@@ -139,7 +139,7 @@ static constexpr size_t WITNESS_V0_SCRIPTHASH_SIZE = 32;
 static constexpr size_t WITNESS_V0_KEYHASH_SIZE = 20;
 
 template <class T>
-uint256 SignatureHash(const CScript& scriptCode,
+uint256 SignatureHash(const CScript &scriptCode,
                         const T &txTo,
                         unsigned int nIn,
                         int nHashType,
@@ -176,7 +176,9 @@ private:
     const PrecomputedTransactionData *txdata;
 
 protected:
-    virtual bool VerifySignature(const std::vector<unsigned char> &vchSig, const CPubKey &vchPubKey, const uint256 &sighash) const;
+    virtual bool VerifySignature(const std::vector<unsigned char> &vchSig,
+                                    const CPubKey &vchPubKey,
+                                    const uint256 &sighash) const;
 
 public:
     GenericTransactionSignatureChecker(const T *txToIn,

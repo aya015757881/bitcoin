@@ -114,16 +114,15 @@ inline uint160 Hash160(const prevector<N, unsigned char> &vch)
 }
 
 /** A writer stream (for serialization) that computes a 256-bit hash. */
-class CHashWriter
-{
+class CHashWriter {
 private:
     CHash256 ctx;
-
+    
     const int nType;
     const int nVersion;
 public:
 
-    CHashWriter(int nTypeIn, int nVersionIn) : nType(nTypeIn), nVersion(nVersionIn) {}
+    CHashWriter(int nTypeIn, int nVersionIn) : nType(nTypeIn), nVersion(nVersionIn) { }
 
     int GetType() const { return nType; }
     int GetVersion() const { return nVersion; }
@@ -149,7 +148,7 @@ public:
     }
 
     template<typename T>
-    CHashWriter& operator<<(const T &obj) {
+    CHashWriter &operator<<(const T &obj) {
         // Serialize to this stream
         ::Serialize(*this, obj);
         return (*this);
