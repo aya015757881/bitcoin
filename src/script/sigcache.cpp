@@ -37,14 +37,12 @@ public:
         m_salted_hasher.Write(nonce.begin(), 32);
     }
 
-    void
-    ComputeEntry(uint256 &entry, const uint256 &hash, const std::vector<unsigned char> &vchSig, const CPubKey &pubkey) {
+    void ComputeEntry(uint256 &entry, const uint256 &hash, const std::vector<unsigned char> &vchSig, const CPubKey &pubkey) {
         CSHA256 hasher = m_salted_hasher;
         hasher.Write(hash.begin(), 32).Write(&pubkey[0], pubkey.size()).Write(&vchSig[0], vchSig.size()).Finalize(entry.begin());
     }
 
-    bool
-    Get(const uint256 &entry, const bool erase) {
+    bool Get(const uint256 &entry, const bool erase) {
         boost::shared_lock<boost::shared_mutex> lock(cs_sigcache);
         return setValid.contains(entry, erase);
     }
