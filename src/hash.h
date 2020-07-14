@@ -55,7 +55,7 @@ public:
         CRIPEMD160().Write(buf, CSHA256::OUTPUT_SIZE).Finalize(hash);
     }
 
-    CHash160& Write(const unsigned char *data, size_t len) {
+    CHash160 &Write(const unsigned char *data, size_t len) {
         sha.Write(data, len);
         return *this;
     }
@@ -117,7 +117,7 @@ inline uint160 Hash160(const prevector<N, unsigned char> &vch)
 class CHashWriter {
 private:
     CHash256 ctx;
-    
+
     const int nType;
     const int nVersion;
 public:

@@ -82,7 +82,7 @@ public:
  */
 class uint160 : public base_blob<160> {
 public:
-    uint160() {}
+    uint160() { }
     explicit uint160(const std::vector<unsigned char> &vch) : base_blob<160>(vch) { }
 };
 

@@ -244,7 +244,7 @@ CRIPEMD160::CRIPEMD160() : bytes(0)
     ripemd160::Initialize(s);
 }
 
-CRIPEMD160& CRIPEMD160::Write(const unsigned char* data, size_t len)
+CRIPEMD160 &CRIPEMD160::Write(const unsigned char *data, size_t len)
 {
     const unsigned char* end = data + len;
     size_t bufsize = bytes % 64;

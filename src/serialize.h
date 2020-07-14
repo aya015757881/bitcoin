@@ -57,67 +57,79 @@ template<typename Stream> inline void ser_writedata8(Stream &s, uint8_t obj)
 {
     s.write((char*)&obj, 1);
 }
+
 template<typename Stream> inline void ser_writedata16(Stream &s, uint16_t obj)
 {
     obj = htole16(obj);
     s.write((char*)&obj, 2);
 }
+
 template<typename Stream> inline void ser_writedata16be(Stream &s, uint16_t obj)
 {
     obj = htobe16(obj);
     s.write((char*)&obj, 2);
 }
+
 template<typename Stream> inline void ser_writedata32(Stream &s, uint32_t obj)
 {
     obj = htole32(obj);
     s.write((char*)&obj, 4);
 }
+
 template<typename Stream> inline void ser_writedata32be(Stream &s, uint32_t obj)
 {
     obj = htobe32(obj);
     s.write((char*)&obj, 4);
 }
+
 template<typename Stream> inline void ser_writedata64(Stream &s, uint64_t obj)
 {
     obj = htole64(obj);
     s.write((char*)&obj, 8);
 }
+
 template<typename Stream> inline uint8_t ser_readdata8(Stream &s)
 {
     uint8_t obj;
     s.read((char*)&obj, 1);
     return obj;
 }
+
 template<typename Stream> inline uint16_t ser_readdata16(Stream &s)
 {
     uint16_t obj;
     s.read((char*)&obj, 2);
     return le16toh(obj);
 }
+
 template<typename Stream> inline uint16_t ser_readdata16be(Stream &s)
 {
     uint16_t obj;
     s.read((char*)&obj, 2);
     return be16toh(obj);
 }
+
 template<typename Stream> inline uint32_t ser_readdata32(Stream &s)
 {
     uint32_t obj;
     s.read((char*)&obj, 4);
     return le32toh(obj);
 }
+
 template<typename Stream> inline uint32_t ser_readdata32be(Stream &s)
 {
     uint32_t obj;
     s.read((char*)&obj, 4);
     return be32toh(obj);
 }
+
 template<typename Stream> inline uint64_t ser_readdata64(Stream &s)
 {
     uint64_t obj;
     s.read((char*)&obj, 8);
     return le64toh(obj);
 }
+
 inline uint64_t ser_double_to_uint64(double x)
 {
     uint64_t tmp;
@@ -125,6 +137,7 @@ inline uint64_t ser_double_to_uint64(double x)
     static_assert(sizeof(tmp) == sizeof(x), "double and uint64_t assumed to have the same size");
     return tmp;
 }
+
 inline uint32_t ser_float_to_uint32(float x)
 {
     uint32_t tmp;
@@ -132,6 +145,7 @@ inline uint32_t ser_float_to_uint32(float x)
     static_assert(sizeof(tmp) == sizeof(x), "float and uint32_t assumed to have the same size");
     return tmp;
 }
+
 inline double ser_uint64_to_double(uint64_t y)
 {
     double tmp;
@@ -139,6 +153,7 @@ inline double ser_uint64_to_double(uint64_t y)
     static_assert(sizeof(tmp) == sizeof(y), "double and uint64_t assumed to have the same size");
     return tmp;
 }
+
 inline float ser_uint32_to_float(uint32_t y)
 {
     float tmp;
@@ -156,8 +171,7 @@ inline float ser_uint32_to_float(uint32_t y)
 
 class CSizeComputer;
 
-enum
-{
+enum {
     // primary actions
     SER_NETWORK         = (1 << 0),
     SER_DISK            = (1 << 1),
@@ -280,59 +294,49 @@ inline unsigned int GetSizeOfCompactSize(uint64_t nSize)
 inline void WriteCompactSize(CSizeComputer& os, uint64_t nSize);
 
 template<typename Stream>
-void WriteCompactSize(Stream& os, uint64_t nSize)
+void WriteCompactSize(Stream &os, uint64_t nSize)
 {
     if (nSize < 253)
-    {
         ser_writedata8(os, nSize);
-    }
-    else if (nSize <= std::numeric_limits<uint16_t>::max())
-    {
+    else if (nSize <= std::numeric_limits<uint16_t>::max()) {
         ser_writedata8(os, 253);
         ser_writedata16(os, nSize);
-    }
-    else if (nSize <= std::numeric_limits<unsigned int>::max())
-    {
+    } else if (nSize <= std::numeric_limits<unsigned int>::max()) {
         ser_writedata8(os, 254);
         ser_writedata32(os, nSize);
-    }
-    else
-    {
+    } else {
         ser_writedata8(os, 255);
         ser_writedata64(os, nSize);
     }
+
     return;
 }
 
 template<typename Stream>
-uint64_t ReadCompactSize(Stream& is)
+uint64_t ReadCompactSize(Stream &is)
 {
     uint8_t chSize = ser_readdata8(is);
     uint64_t nSizeRet = 0;
+    
     if (chSize < 253)
-    {
         nSizeRet = chSize;
-    }
-    else if (chSize == 253)
-    {
+    else if (chSize == 253) {
         nSizeRet = ser_readdata16(is);
         if (nSizeRet < 253)
             throw std::ios_base::failure("non-canonical ReadCompactSize()");
-    }
-    else if (chSize == 254)
-    {
+    } else if (chSize == 254) {
         nSizeRet = ser_readdata32(is);
         if (nSizeRet < 0x10000u)
             throw std::ios_base::failure("non-canonical ReadCompactSize()");
-    }
-    else
-    {
+    } else {
         nSizeRet = ser_readdata64(is);
         if (nSizeRet < 0x100000000ULL)
             throw std::ios_base::failure("non-canonical ReadCompactSize()");
     }
+
     if (nSizeRet > (uint64_t)MAX_SIZE)
         throw std::ios_base::failure("ReadCompactSize(): size too large");
+    
     return nSizeRet;
 }
 

@@ -35,13 +35,12 @@ public:
     static constexpr unsigned int COMPRESSED_SIZE        = 33;
     static constexpr unsigned int SIGNATURE_SIZE         = 72;
     static constexpr unsigned int COMPACT_SIGNATURE_SIZE = 65;
+    
     /**
      * see www.keylength.com
      * script supports up to 75 for single byte push
      */
-    static_assert(
-        SIZE >= COMPRESSED_SIZE,
-        "COMPRESSED_SIZE is larger than SIZE");
+    static_assert(SIZE >= COMPRESSED_SIZE, "COMPRESSED_SIZE is larger than SIZE");
 
 private:
 
@@ -53,15 +52,18 @@ private:
 
     //! Compute the length of a pubkey with a given first byte.
     unsigned int static GetLen(unsigned char chHeader) {
+    
         if (chHeader == 2 || chHeader == 3)
             return COMPRESSED_SIZE;
+    
         if (chHeader == 4 || chHeader == 6 || chHeader == 7)
             return SIZE;
+    
         return 0;
     }
 
     //! Set this key data to be invalid
-    void Invalidate() { vch[0] = 0xFF; }
+    void Invalidate() { vch[0] = 0xff; }
 
 public:
 
@@ -156,7 +158,7 @@ public:
      * Verify a DER signature (~72 bytes).
      * If this public key is not fully valid, the return value will be false.
      */
-    bool Verify(const uint256& hash, const std::vector<unsigned char> &vchSig) const;
+    bool Verify(const uint256 &hash, const std::vector<unsigned char> &vchSig) const;
 
     /**
      * Check whether a signature is normalized (lower-S).
@@ -180,8 +182,7 @@ struct CExtPubKey {
     ChainCode chaincode;
     CPubKey pubkey;
 
-    friend bool operator==(const CExtPubKey &a, const CExtPubKey &b)
-    {
+    friend bool operator==(const CExtPubKey &a, const CExtPubKey &b) {
         return a.nDepth == b.nDepth &&
             memcmp(&a.vchFingerprint[0], &b.vchFingerprint[0], sizeof(vchFingerprint)) == 0 &&
             a.nChild == b.nChild &&
@@ -189,22 +190,19 @@ struct CExtPubKey {
             a.pubkey == b.pubkey;
     }
 
-    friend bool operator!=(const CExtPubKey &a, const CExtPubKey &b)
-    {
+    friend bool operator!=(const CExtPubKey &a, const CExtPubKey &b) {
         return !(a == b);
     }
 
     void Encode(unsigned char code[BIP32_EXTKEY_SIZE]) const;
     void Decode(const unsigned char code[BIP32_EXTKEY_SIZE]);
-    bool Derive(CExtPubKey& out, unsigned int nChild) const;
+    bool Derive(CExtPubKey &out, unsigned int nChild) const;
 };
 
 /** Users of this module must hold an ECCVerifyHandle. The constructor and
  *  destructor of these are not allowed to run in parallel, though. */
-class ECCVerifyHandle
-{
+class ECCVerifyHandle {
     static int refcount;
-
 public:
     ECCVerifyHandle();
     ~ECCVerifyHandle();
