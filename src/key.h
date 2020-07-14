@@ -31,13 +31,12 @@ public:
      */
     static const unsigned int SIZE            = 279;
     static const unsigned int COMPRESSED_SIZE = 214;
+    
     /**
      * see www.keylength.com
      * script supports up to 75 for single byte push
      */
-    static_assert(
-        SIZE >= COMPRESSED_SIZE,
-        "COMPRESSED_SIZE is larger than SIZE");
+    static_assert(SIZE >= COMPRESSED_SIZE, "COMPRESSED_SIZE is larger than SIZE");
 
 private:
     //! Whether this private key is valid. We check for correctness when modifying the key
