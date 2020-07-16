@@ -140,8 +140,7 @@ struct SectionInfo
     int m_line;
 };
 
-class ArgsManager
-{
+class ArgsManager {
 public:
     enum Flags {
         // Boolean options can accept negation syntax -noOPTION or -noOPTION=1
@@ -191,7 +190,7 @@ protected:
      * false if "-nosetting" argument was passed, and a string if a "-setting=value"
      * argument was passed.
      */
-    util::SettingsValue GetSetting(const std::string& arg) const;
+    util::SettingsValue GetSetting(const std::string &arg) const;
 
     /**
      * Get list of setting values.

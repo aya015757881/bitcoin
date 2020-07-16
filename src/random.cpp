@@ -404,7 +404,7 @@ public:
      *
      * If this function has never been called with strong_seed = true, false is returned.
      */
-    bool MixExtract(unsigned char* out, size_t num, CSHA512&& hasher, bool strong_seed) noexcept
+    bool MixExtract(unsigned char* out, size_t num, CSHA512 &&hasher, bool strong_seed) noexcept
     {
         assert(num <= 32);
         unsigned char buf[64];
@@ -547,7 +547,7 @@ enum class RNGLevel {
     PERIODIC, //!< Called by RandAddPeriodic()
 };
 
-static void ProcRand(unsigned char* out, int num, RNGLevel level) noexcept
+static void ProcRand(unsigned char *out, int num, RNGLevel level) noexcept
 {
     // Make sure the RNG is initialized first (as all Seed* function possibly need hwrand to be available).
     RNGState& rng = GetRNGState();
@@ -576,7 +576,7 @@ static void ProcRand(unsigned char* out, int num, RNGLevel level) noexcept
     }
 }
 
-void GetRandBytes(unsigned char* buf, int num) noexcept { ProcRand(buf, num, RNGLevel::FAST); }
+void GetRandBytes(unsigned char *buf, int num) noexcept { ProcRand(buf, num, RNGLevel::FAST); }
 void GetStrongRandBytes(unsigned char* buf, int num) noexcept { ProcRand(buf, num, RNGLevel::SLOW); }
 void RandAddPeriodic() noexcept { ProcRand(nullptr, 0, RNGLevel::PERIODIC); }
 void RandAddEvent(const uint32_t event_info) noexcept { GetRNGState().AddEvent(event_info); }

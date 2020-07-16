@@ -21,74 +21,62 @@ class CScript;
 struct ScriptHash;
 
 template<typename HashType>
-class BaseHash
-{
+class BaseHash {
 protected:
     HashType m_hash;
 
 public:
-    BaseHash() : m_hash() {}
-    BaseHash(const HashType& in) : m_hash(in) {}
+    BaseHash() : m_hash() { }
+    BaseHash(const HashType &in) : m_hash(in) { }
 
-    unsigned char* begin()
-    {
+    unsigned char *begin() {
         return m_hash.begin();
     }
 
-    const unsigned char* begin() const
-    {
+    const unsigned char *begin() const {
         return m_hash.begin();
     }
 
-    unsigned char* end()
-    {
+    unsigned char *end() {
         return m_hash.end();
     }
 
-    const unsigned char* end() const
-    {
+    const unsigned char *end() const {
         return m_hash.end();
     }
 
-    operator std::vector<unsigned char>() const
-    {
+    operator std::vector<unsigned char>() const {
         return std::vector<unsigned char>{m_hash.begin(), m_hash.end()};
     }
 
-    std::string ToString() const
-    {
+    std::string ToString() const {
         return m_hash.ToString();
     }
 
-    bool operator==(const BaseHash<HashType>& other) const noexcept
-    {
+    bool operator==(const BaseHash<HashType> &other) const noexcept {
         return m_hash == other.m_hash;
     }
 
-    bool operator!=(const BaseHash<HashType>& other) const noexcept
-    {
+    bool operator!=(const BaseHash<HashType> &other) const noexcept {
         return !(m_hash == other.m_hash);
     }
 
-    bool operator<(const BaseHash<HashType>& other) const noexcept
-    {
+    bool operator<(const BaseHash<HashType> &other) const noexcept {
         return m_hash < other.m_hash;
     }
 
-    size_t size() const
-    {
+    size_t size() const {
         return m_hash.size();
     }
 };
 
 /** A reference to a CScript: the Hash160 of its serialization (see script.h) */
-class CScriptID : public BaseHash<uint160>
-{
+class CScriptID : public BaseHash<uint160> {
 public:
-    CScriptID() : BaseHash() {}
-    explicit CScriptID(const CScript& in);
-    explicit CScriptID(const uint160& in) : BaseHash(in) {}
-    explicit CScriptID(const ScriptHash& in);
+    CScriptID() : BaseHash() { }
+    explicit CScriptID(const CScript &in);
+    explicit CScriptID(const uint160 &in) : BaseHash(in) { }
+    explicit CScriptID(const ScriptHash &in);
 };
 
 /**
@@ -135,59 +123,57 @@ public:
     friend bool operator<(const CNoDestination &a, const CNoDestination &b) { return true; }
 };
 
-struct PKHash : public BaseHash<uint160>
-{
-    PKHash() : BaseHash() {}
-    explicit PKHash(const uint160& hash) : BaseHash(hash) {}
-    explicit PKHash(const CPubKey& pubkey);
-    explicit PKHash(const CKeyID& pubkey_id);
+struct PKHash : public BaseHash<uint160> {
+    PKHash() : BaseHash() { }
+    explicit PKHash(const uint160 &hash) : BaseHash(hash) { }
+    explicit PKHash(const CPubKey &pubkey);
+    explicit PKHash(const CKeyID &pubkey_id);
 };
-CKeyID ToKeyID(const PKHash& key_hash);
+
+CKeyID ToKeyID(const PKHash &key_hash);
 
 struct WitnessV0KeyHash;
-struct ScriptHash : public BaseHash<uint160>
-{
-    ScriptHash() : BaseHash() {}
+
+struct ScriptHash : public BaseHash<uint160> {
+    ScriptHash() : BaseHash() { }
     // These don't do what you'd expect.
     // Use ScriptHash(GetScriptForDestination(...)) instead.
-    explicit ScriptHash(const WitnessV0KeyHash& hash) = delete;
-    explicit ScriptHash(const PKHash& hash) = delete;
+    explicit ScriptHash(const WitnessV0KeyHash &hash) = delete;
+    explicit ScriptHash(const PKHash &hash) = delete;
 
-    explicit ScriptHash(const uint160& hash) : BaseHash(hash) {}
-    explicit ScriptHash(const CScript& script);
-    explicit ScriptHash(const CScriptID& script);
+    explicit ScriptHash(const uint160 &hash) : BaseHash(hash) { }
+    explicit ScriptHash(const CScript &script);
+    explicit ScriptHash(const CScriptID &script);
 };
 
-struct WitnessV0ScriptHash : public BaseHash<uint256>
-{
-    WitnessV0ScriptHash() : BaseHash() {}
-    explicit WitnessV0ScriptHash(const uint256& hash) : BaseHash(hash) {}
-    explicit WitnessV0ScriptHash(const CScript& script);
+struct WitnessV0ScriptHash : public BaseHash<uint256> {
+    WitnessV0ScriptHash() : BaseHash() { }
+    explicit WitnessV0ScriptHash(const uint256 &hash) : BaseHash(hash) { }
+    explicit WitnessV0ScriptHash(const CScript &script);
 };
 
-struct WitnessV0KeyHash : public BaseHash<uint160>
-{
-    WitnessV0KeyHash() : BaseHash() {}
-    explicit WitnessV0KeyHash(const uint160& hash) : BaseHash(hash) {}
-    explicit WitnessV0KeyHash(const CPubKey& pubkey);
-    explicit WitnessV0KeyHash(const PKHash& pubkey_hash);
+struct WitnessV0KeyHash : public BaseHash<uint160> {
+    WitnessV0KeyHash() : BaseHash() { }
+    explicit WitnessV0KeyHash(const uint160 &hash) : BaseHash(hash) { }
+    explicit WitnessV0KeyHash(const CPubKey &pubkey);
+    explicit WitnessV0KeyHash(const PKHash &pubkey_hash);
 };
+
 CKeyID ToKeyID(const WitnessV0KeyHash& key_hash);
 
 //! CTxDestination subtype to encode any future Witness version
-struct WitnessUnknown
-{
+struct WitnessUnknown {
     unsigned int version;
     unsigned int length;
     unsigned char program[40];
 
-    friend bool operator==(const WitnessUnknown& w1, const WitnessUnknown& w2) {
+    friend bool operator==(const WitnessUnknown &w1, const WitnessUnknown &w2) {
         if (w1.version != w2.version) return false;
         if (w1.length != w2.length) return false;
         return std::equal(w1.program, w1.program + w1.length, w2.program);
     }
 
-    friend bool operator<(const WitnessUnknown& w1, const WitnessUnknown& w2) {
+    friend bool operator<(const WitnessUnknown &w1, const WitnessUnknown &w2) {
         if (w1.version < w2.version) return true;
         if (w1.version > w2.version) return false;
         if (w1.length < w2.length) return true;
@@ -209,7 +195,7 @@ struct WitnessUnknown
 typedef boost::variant<CNoDestination, PKHash, ScriptHash, WitnessV0ScriptHash, WitnessV0KeyHash, WitnessUnknown> CTxDestination;
 
 /** Check whether a CTxDestination is a CNoDestination. */
-bool IsValidDestination(const CTxDestination& dest);
+bool IsValidDestination(const CTxDestination &dest);
 
 /** Get the name of a TxoutType as a string */
 std::string GetTxnOutputType(TxoutType t);
@@ -224,7 +210,7 @@ std::string GetTxnOutputType(TxoutType t);
  * @param[out]  vSolutionsRet  Vector of parsed pubkeys and hashes
  * @return                     The script type. TxoutType::NONSTANDARD represents a failed solve.
  */
-TxoutType Solver(const CScript& scriptPubKey, std::vector<std::vector<unsigned char>>& vSolutionsRet);
+TxoutType Solver(const CScript &scriptPubKey, std::vector<std::vector<unsigned char>> &vSolutionsRet);
 
 /**
  * Parse a standard scriptPubKey for the destination address. Assigns result to
@@ -232,7 +218,7 @@ TxoutType Solver(const CScript& scriptPubKey, std::vector<std::vector<unsigned c
  * scripts, instead use ExtractDestinations. Currently only works for P2PK,
  * P2PKH, P2SH, P2WPKH, and P2WSH scripts.
  */
-bool ExtractDestination(const CScript& scriptPubKey, CTxDestination& addressRet);
+bool ExtractDestination(const CScript &scriptPubKey, CTxDestination &addressRet);
 
 /**
  * Parse a standard scriptPubKey with one or more destination addresses. For
@@ -245,20 +231,20 @@ bool ExtractDestination(const CScript& scriptPubKey, CTxDestination& addressRet)
  * encodable as an address) with key identifiers (of keys involved in a
  * CScript), and its use should be phased out.
  */
-bool ExtractDestinations(const CScript& scriptPubKey, TxoutType& typeRet, std::vector<CTxDestination>& addressRet, int& nRequiredRet);
+bool ExtractDestinations(const CScript &scriptPubKey, TxoutType &typeRet, std::vector<CTxDestination> &addressRet, int &nRequiredRet);
 
 /**
  * Generate a Bitcoin scriptPubKey for the given CTxDestination. Returns a P2PKH
  * script for a CKeyID destination, a P2SH script for a CScriptID, and an empty
  * script for CNoDestination.
  */
-CScript GetScriptForDestination(const CTxDestination& dest);
+CScript GetScriptForDestination(const CTxDestination &dest);
 
 /** Generate a P2PK script for the given pubkey. */
-CScript GetScriptForRawPubKey(const CPubKey& pubkey);
+CScript GetScriptForRawPubKey(const CPubKey &pubkey);
 
 /** Generate a multisig script. */
-CScript GetScriptForMultisig(int nRequired, const std::vector<CPubKey>& keys);
+CScript GetScriptForMultisig(int nRequired, const std::vector<CPubKey> &keys);
 
 /**
  * Generate a pay-to-witness script for the given redeem script. If the redeem
@@ -268,6 +254,6 @@ CScript GetScriptForMultisig(int nRequired, const std::vector<CPubKey>& keys);
  * TODO: replace calls to GetScriptForWitness with GetScriptForDestination using
  * the various witness-specific CTxDestination subtypes.
  */
-CScript GetScriptForWitness(const CScript& redeemscript);
+CScript GetScriptForWitness(const CScript &redeemscript);
 
 #endif // BITCOIN_SCRIPT_STANDARD_H

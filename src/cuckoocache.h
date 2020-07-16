@@ -63,7 +63,7 @@ public:
         size = (size + 7) / 8;
         mem.reset(new std::atomic<uint8_t>[size]);
         for (uint32_t i = 0; i < size; ++i)
-            mem[i].store(0xFF);
+            mem[i].store(0xff);
     };
 
     /** setup marks all entries and ensures that bit_packed_atomic_flags can store
@@ -155,8 +155,7 @@ public:
  * high-entropy uint32_t hashes for `Hash h; h<0>(e) ... h<7>(e)`.
  */
 template <typename Element, typename Hash>
-class cache
-{
+class cache {
 private:
     /** table stores all the elements */
     std::vector<Element> table;
@@ -239,7 +238,7 @@ private:
      * @param e The element whose hashes will be returned
      * @returns Deterministic hashes derived from `e` uniformly mapped onto the range [0, size)
      */
-    inline std::array<uint32_t, 8> compute_hashes(const Element& e) const
+    inline std::array<uint32_t, 8> compute_hashes(const Element &e) const
     {
         return {{(uint32_t)(((uint64_t)hash_function.template operator()<0>(e) * (uint64_t)size) >> 32),
                  (uint32_t)(((uint64_t)hash_function.template operator()<1>(e) * (uint64_t)size) >> 32),
@@ -324,9 +323,7 @@ public:
      * call to setup or setup_bytes, otherwise operations may segfault.
      */
     cache() : table(), size(), collection_flags(0), epoch_flags(),
-    epoch_heuristic_counter(), epoch_size(), depth_limit(0), hash_function()
-    {
-    }
+    epoch_heuristic_counter(), epoch_size(), depth_limit(0), hash_function() { }
 
     /** setup initializes the container to store no more than new_size
      * elements.
@@ -365,7 +362,7 @@ public:
      */
     uint32_t setup_bytes(size_t bytes)
     {
-        return setup(bytes/sizeof(Element));
+        return setup(bytes / sizeof(Element));
     }
 
     /** insert loops at most depth_limit times trying to insert a hash
@@ -466,7 +463,7 @@ public:
      * flag is set
      * @returns true if the element is found, false otherwise
      */
-    inline bool contains(const Element& e, const bool erase) const
+    inline bool contains(const Element &e, const bool erase) const
     {
         std::array<uint32_t, 8> locs = compute_hashes(e);
         for (const uint32_t loc : locs)

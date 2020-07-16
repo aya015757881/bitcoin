@@ -22,36 +22,32 @@ enum class Source {
 //! This function is provided with a callback function fn that contains
 //! specific logic for how to merge the sources.
 template <typename Fn>
-static void MergeSettings(const Settings& settings, const std::string& section, const std::string& name, Fn&& fn)
+static void MergeSettings(const Settings &settings, const std::string &section, const std::string &name, Fn &&fn)
 {
     // Merge in the forced settings
-    if (auto* value = FindKey(settings.forced_settings, name)) {
+    if (auto* value = FindKey(settings.forced_settings, name))
         fn(SettingsSpan(*value), Source::FORCED);
-    }
+
     // Merge in the command-line options
-    if (auto* values = FindKey(settings.command_line_options, name)) {
+    if (auto* values = FindKey(settings.command_line_options, name))
         fn(SettingsSpan(*values), Source::COMMAND_LINE);
-    }
+
     // Merge in the network-specific section of the config file
-    if (!section.empty()) {
-        if (auto* map = FindKey(settings.ro_config, section)) {
-            if (auto* values = FindKey(*map, name)) {
+    if (!section.empty())
+        if (auto* map = FindKey(settings.ro_config, section))
+            if (auto* values = FindKey(*map, name))
                 fn(SettingsSpan(*values), Source::CONFIG_FILE_NETWORK_SECTION);
-            }
-        }
-    }
+
     // Merge in the default section of the config file
-    if (auto* map = FindKey(settings.ro_config, "")) {
-        if (auto* values = FindKey(*map, name)) {
+    if (auto* map = FindKey(settings.ro_config, ""))
+        if (auto* values = FindKey(*map, name))
             fn(SettingsSpan(*values), Source::CONFIG_FILE_DEFAULT_SECTION);
-        }
-    }
 }
 } // namespace
 
-SettingsValue GetSetting(const Settings& settings,
-    const std::string& section,
-    const std::string& name,
+SettingsValue GetSetting(const Settings &settings,
+    const std::string &section,
+    const std::string &name,
     bool ignore_default_section_config,
     bool get_chain_name)
 {
@@ -99,6 +95,7 @@ SettingsValue GetSetting(const Settings& settings,
             done = true;
         }
     });
+
     return result;
 }
 

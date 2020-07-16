@@ -39,7 +39,10 @@ public:
 
     void ComputeEntry(uint256 &entry, const uint256 &hash, const std::vector<unsigned char> &vchSig, const CPubKey &pubkey) {
         CSHA256 hasher = m_salted_hasher;
-        hasher.Write(hash.begin(), 32).Write(&pubkey[0], pubkey.size()).Write(&vchSig[0], vchSig.size()).Finalize(entry.begin());
+        hasher.Write(hash.begin(), 32)
+                .Write(&pubkey[0], pubkey.size())
+                .Write(&vchSig[0], vchSig.size())
+                .Finalize(entry.begin());
     }
 
     bool Get(const uint256 &entry, const bool erase) {
@@ -75,7 +78,7 @@ void InitSignatureCache()
     size_t nMaxCacheSize = std::min(std::max((int64_t)0, gArgs.GetArg("-maxsigcachesize", DEFAULT_MAX_SIG_CACHE_SIZE) / 2), MAX_MAX_SIG_CACHE_SIZE) * ((size_t) 1 << 20);
     size_t nElems = signatureCache.setup_bytes(nMaxCacheSize);
     LogPrintf("Using %zu MiB out of %zu/2 requested for signature cache, able to store %zu elements\n",
-            (nElems*sizeof(uint256)) >>20, (nMaxCacheSize*2)>>20, nElems);
+                (nElems * sizeof(uint256)) >> 20, (nMaxCacheSize * 2) >> 20, nElems);
 }
 
 bool CachingTransactionSignatureChecker::VerifySignature(const std::vector<unsigned char> &vchSig,

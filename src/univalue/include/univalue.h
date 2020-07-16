@@ -21,7 +21,7 @@ public:
     enum VType { VNULL, VOBJ, VARR, VSTR, VNUM, VBOOL, };
 
     UniValue() { typ = VNULL; }
-    UniValue(UniValue::VType initialType, const std::string& initialStr = "") {
+    UniValue(UniValue::VType initialType, const std::string &initialStr = "") {
         typ = initialType;
         val = initialStr;
     }

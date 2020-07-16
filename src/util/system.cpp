@@ -172,7 +172,7 @@ static bool InterpretBool(const std::string& strValue)
     return (atoi(strValue) != 0);
 }
 
-static std::string SettingName(const std::string& arg)
+static std::string SettingName(const std::string &arg)
 {
     return arg.size() > 0 && arg[0] == '-' ? arg.substr(1) : arg;
 }
@@ -383,7 +383,7 @@ std::string ArgsManager::GetArg(const std::string& strArg, const std::string& st
     return value.isNull() ? strDefault : value.isFalse() ? "0" : value.isTrue() ? "1" : value.get_str();
 }
 
-int64_t ArgsManager::GetArg(const std::string& strArg, int64_t nDefault) const
+int64_t ArgsManager::GetArg(const std::string &strArg, int64_t nDefault) const
 {
     const util::SettingsValue value = GetSetting(strArg);
     return value.isNull() ? nDefault : value.isFalse() ? 0 : value.isTrue() ? 1 : value.isNum() ? value.get_int64() : atoi64(value.get_str());
@@ -852,16 +852,15 @@ std::string ArgsManager::GetChainName() const
     return GetArg("-chain", CBaseChainParams::MAIN);
 }
 
-bool ArgsManager::UseDefaultSection(const std::string& arg) const
+bool ArgsManager::UseDefaultSection(const std::string &arg) const
 {
     return m_network == CBaseChainParams::MAIN || m_network_only_args.count(arg) == 0;
 }
 
-util::SettingsValue ArgsManager::GetSetting(const std::string& arg) const
+util::SettingsValue ArgsManager::GetSetting(const std::string &arg) const
 {
     LOCK(cs_args);
-    return util::GetSetting(
-        m_settings, m_network, SettingName(arg), !UseDefaultSection(arg), /* get_chain_name= */ false);
+    return util::GetSetting(m_settings, m_network, SettingName(arg), !UseDefaultSection(arg), /* get_chain_name= */ false);
 }
 
 std::vector<util::SettingsValue> ArgsManager::GetSettingsList(const std::string& arg) const

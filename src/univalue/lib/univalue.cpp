@@ -35,7 +35,7 @@ bool UniValue::setBool(bool val_)
     return true;
 }
 
-static bool validNumStr(const std::string& s)
+static bool validNumStr(const std::string &s)
 {
     std::string tokenVal;
     unsigned int consumed;
@@ -43,7 +43,7 @@ static bool validNumStr(const std::string& s)
     return (tt == JTOK_NUMBER);
 }
 
-bool UniValue::setNumStr(const std::string& val_)
+bool UniValue::setNumStr(const std::string &val_)
 {
     if (!validNumStr(val_))
         return false;
