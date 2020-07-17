@@ -25,11 +25,15 @@ struct CMutableTransaction;
 /** Interface for signature creators. */
 class BaseSignatureCreator {
 public:
-    virtual ~BaseSignatureCreator() {}
-    virtual const BaseSignatureChecker& Checker() const =0;
+    virtual ~BaseSignatureCreator() { }
+    virtual const BaseSignatureChecker &Checker() const = 0;
 
     /** Create a singular (non-script) signature. */
-    virtual bool CreateSig(const SigningProvider& provider, std::vector<unsigned char>& vchSig, const CKeyID& keyid, const CScript& scriptCode, SigVersion sigversion) const =0;
+    virtual bool CreateSig(const SigningProvider &provider,
+                            std::vector<unsigned char> &vchSig,
+                            const CKeyID &keyid,
+                            const CScript &scriptCode,
+                            SigVersion sigversion) const = 0;
 };
 
 /** A signature creator for transactions. */
@@ -41,9 +45,16 @@ class MutableTransactionSignatureCreator : public BaseSignatureCreator {
     const MutableTransactionSignatureChecker checker;
 
 public:
-    MutableTransactionSignatureCreator(const CMutableTransaction* txToIn, unsigned int nInIn, const CAmount& amountIn, int nHashTypeIn = SIGHASH_ALL);
-    const BaseSignatureChecker& Checker() const override { return checker; }
-    bool CreateSig(const SigningProvider& provider, std::vector<unsigned char>& vchSig, const CKeyID& keyid, const CScript& scriptCode, SigVersion sigversion) const override;
+    MutableTransactionSignatureCreator(const CMutableTransaction *txToIn,
+                                        unsigned int nInIn,
+                                        const CAmount &amountIn,
+                                        int nHashTypeIn = SIGHASH_ALL);
+    const BaseSignatureChecker &Checker() const override { return checker; }
+    bool CreateSig(const SigningProvider &provider,
+                    std::vector<unsigned char> &vchSig,
+                    const CKeyID &keyid,
+                    const CScript &scriptCode,
+                    SigVersion sigversion) const override;
 };
 
 /** A signature creator that just produces 71-byte empty signatures. */
@@ -70,8 +81,8 @@ struct SignatureData {
     uint160 missing_redeem_script; ///< ScriptID of the missing redeemScript (if any)
     uint256 missing_witness_script; ///< SHA256 of the missing witnessScript (if any)
 
-    SignatureData() {}
-    explicit SignatureData(const CScript& script) : scriptSig(script) {}
+    SignatureData() { }
+    explicit SignatureData(const CScript &script) : scriptSig(script) { }
     void MergeSignatureData(SignatureData sigdata);
 };
 
@@ -86,42 +97,41 @@ void SerializeToVector(Stream& s, const X&... args)
 
 // Takes a stream and multiple arguments and unserializes them first as a vector then each object individually in the order provided in the arguments
 template<typename Stream, typename... X>
-void UnserializeFromVector(Stream& s, X&... args)
+void UnserializeFromVector(Stream &s, X&... args)
 {
     size_t expected_size = ReadCompactSize(s);
     size_t remaining_before = s.size();
     UnserializeMany(s, args...);
     size_t remaining_after = s.size();
-    if (remaining_after + expected_size != remaining_before) {
+    if (remaining_after + expected_size != remaining_before)
         throw std::ios_base::failure("Size of value was not the stated size");
-    }
 }
 
 // Deserialize HD keypaths into a map
 template<typename Stream>
-void DeserializeHDKeypaths(Stream& s, const std::vector<unsigned char>& key, std::map<CPubKey, KeyOriginInfo>& hd_keypaths)
+void DeserializeHDKeypaths(Stream &s, const std::vector<unsigned char> &key, std::map<CPubKey, KeyOriginInfo> &hd_keypaths)
 {
     // Make sure that the key is the size of pubkey + 1
-    if (key.size() != CPubKey::SIZE + 1 && key.size() != CPubKey::COMPRESSED_SIZE + 1) {
+    if (key.size() != CPubKey::SIZE + 1 && key.size() != CPubKey::COMPRESSED_SIZE + 1)
         throw std::ios_base::failure("Size of key was not the expected size for the type BIP32 keypath");
-    }
+
     // Read in the pubkey from key
     CPubKey pubkey(key.begin() + 1, key.end());
-    if (!pubkey.IsFullyValid()) {
+    
+    if (!pubkey.IsFullyValid())
        throw std::ios_base::failure("Invalid pubkey");
-    }
-    if (hd_keypaths.count(pubkey) > 0) {
+
+    if (hd_keypaths.count(pubkey) > 0)
         throw std::ios_base::failure("Duplicate Key, pubkey derivation path already provided");
-    }
 
     // Read in key path
     uint64_t value_len = ReadCompactSize(s);
-    if (value_len % 4 || value_len == 0) {
+    if (value_len % 4 || value_len == 0)
         throw std::ios_base::failure("Invalid length for HD key path");
-    }
 
     KeyOriginInfo keypath;
     s >> keypath.fingerprint;
+
     for (unsigned int i = 4; i < value_len; i += sizeof(uint32_t)) {
         uint32_t index;
         s >> index;
@@ -134,42 +144,44 @@ void DeserializeHDKeypaths(Stream& s, const std::vector<unsigned char>& key, std
 
 // Serialize HD keypaths to a stream from a map
 template<typename Stream>
-void SerializeHDKeypaths(Stream& s, const std::map<CPubKey, KeyOriginInfo>& hd_keypaths, uint8_t type)
+void SerializeHDKeypaths(Stream &s, const std::map<CPubKey, KeyOriginInfo> &hd_keypaths, uint8_t type)
 {
     for (auto keypath_pair : hd_keypaths) {
-        if (!keypath_pair.first.IsValid()) {
+        if (!keypath_pair.first.IsValid())
             throw std::ios_base::failure("Invalid CPubKey being serialized");
-        }
         SerializeToVector(s, type, MakeSpan(keypath_pair.first));
         WriteCompactSize(s, (keypath_pair.second.path.size() + 1) * sizeof(uint32_t));
         s << keypath_pair.second.fingerprint;
-        for (const auto& path : keypath_pair.second.path) {
+        for (const auto& path : keypath_pair.second.path)
             s << path;
-        }
     }
 }
 
 /** Produce a script signature using a generic signature creator. */
-bool ProduceSignature(const SigningProvider& provider, const BaseSignatureCreator& creator, const CScript& scriptPubKey, SignatureData& sigdata);
+bool ProduceSignature(const SigningProvider &provider, const BaseSignatureCreator &creator, const CScript &scriptPubKey, SignatureData &sigdata);
 
 /** Produce a script signature for a transaction. */
-bool SignSignature(const SigningProvider &provider, const CScript& fromPubKey, CMutableTransaction& txTo, unsigned int nIn, const CAmount& amount, int nHashType);
-bool SignSignature(const SigningProvider &provider, const CTransaction& txFrom, CMutableTransaction& txTo, unsigned int nIn, int nHashType);
+bool SignSignature(const SigningProvider &provider, const CScript &fromPubKey, CMutableTransaction &txTo, unsigned int nIn, const CAmount &amount, int nHashType);
+bool SignSignature(const SigningProvider &provider, const CTransaction &txFrom, CMutableTransaction &txTo, unsigned int nIn, int nHashType);
 
 /** Extract signature data from a transaction input, and insert it. */
-SignatureData DataFromTransaction(const CMutableTransaction& tx, unsigned int nIn, const CTxOut& txout);
-void UpdateInput(CTxIn& input, const SignatureData& data);
+SignatureData DataFromTransaction(const CMutableTransaction &tx, unsigned int nIn, const CTxOut &txout);
+void UpdateInput(CTxIn &input, const SignatureData &data);
 
 /* Check whether we know how to sign for an output like this, assuming we
  * have all private keys. While this function does not need private keys, the passed
  * provider is used to look up public keys and redeemscripts by hash.
  * Solvability is unrelated to whether we consider this output to be ours. */
-bool IsSolvable(const SigningProvider& provider, const CScript& script);
+bool IsSolvable(const SigningProvider &provider, const CScript &script);
 
 /** Check whether a scriptPubKey is known to be segwit. */
-bool IsSegWitOutput(const SigningProvider& provider, const CScript& script);
+bool IsSegWitOutput(const SigningProvider &provider, const CScript &script);
 
 /** Sign the CMutableTransaction */
-bool SignTransaction(CMutableTransaction& mtx, const SigningProvider* provider, const std::map<COutPoint, Coin>& coins, int sighash, std::map<int, std::string>& input_errors);
+bool SignTransaction(CMutableTransaction &mtx,
+                        const SigningProvider *provider,
+                        const std::map<COutPoint, Coin> &coins,
+                        int sighash,
+                        std::map<int, std::string> &input_errors);
 
 #endif // BITCOIN_SCRIPT_SIGN_H

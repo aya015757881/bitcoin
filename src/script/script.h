@@ -429,7 +429,7 @@ public:
         
         if (b.size() < OP_PUSHDATA1)
             insert(end(), (unsigned char)b.size());
-        else if (b.size() <= 0xff) {}
+        else if (b.size() <= 0xff) {
             insert(end(), OP_PUSHDATA1);
             insert(end(), (unsigned char)b.size());
         } else if (b.size() <= 0xffff) {

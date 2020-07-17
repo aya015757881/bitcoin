@@ -9,53 +9,63 @@
 
 #include <util/system.h>
 
-const SigningProvider& DUMMY_SIGNING_PROVIDER = SigningProvider();
+const SigningProvider &DUMMY_SIGNING_PROVIDER = SigningProvider();
 
 template<typename M, typename K, typename V>
-bool LookupHelper(const M& map, const K& key, V& value)
+bool LookupHelper(const M &map, const K &key, V &value)
 {
     auto it = map.find(key);
+
     if (it != map.end()) {
         value = it->second;
         return true;
     }
+
     return false;
 }
 
-bool HidingSigningProvider::GetCScript(const CScriptID& scriptid, CScript& script) const
+bool HidingSigningProvider::GetCScript(const CScriptID &scriptid, CScript &script) const
 {
     return m_provider->GetCScript(scriptid, script);
 }
 
-bool HidingSigningProvider::GetPubKey(const CKeyID& keyid, CPubKey& pubkey) const
+bool HidingSigningProvider::GetPubKey(const CKeyID &keyid, CPubKey &pubkey) const
 {
     return m_provider->GetPubKey(keyid, pubkey);
 }
 
-bool HidingSigningProvider::GetKey(const CKeyID& keyid, CKey& key) const
+bool HidingSigningProvider::GetKey(const CKeyID &keyid, CKey &key) const
 {
-    if (m_hide_secret) return false;
+    if (m_hide_secret)
+        return false;
+
     return m_provider->GetKey(keyid, key);
 }
 
-bool HidingSigningProvider::GetKeyOrigin(const CKeyID& keyid, KeyOriginInfo& info) const
+bool HidingSigningProvider::GetKeyOrigin(const CKeyID &keyid, KeyOriginInfo &info) const
 {
-    if (m_hide_origin) return false;
+    if (m_hide_origin)
+        return false;
+
     return m_provider->GetKeyOrigin(keyid, info);
 }
 
-bool FlatSigningProvider::GetCScript(const CScriptID& scriptid, CScript& script) const { return LookupHelper(scripts, scriptid, script); }
-bool FlatSigningProvider::GetPubKey(const CKeyID& keyid, CPubKey& pubkey) const { return LookupHelper(pubkeys, keyid, pubkey); }
-bool FlatSigningProvider::GetKeyOrigin(const CKeyID& keyid, KeyOriginInfo& info) const
+bool FlatSigningProvider::GetCScript(const CScriptID &scriptid, CScript &script) const { return LookupHelper(scripts, scriptid, script); }
+bool FlatSigningProvider::GetPubKey(const CKeyID &keyid, CPubKey &pubkey) const { return LookupHelper(pubkeys, keyid, pubkey); }
+bool FlatSigningProvider::GetKeyOrigin(const CKeyID &keyid, KeyOriginInfo &info) const
 {
     std::pair<CPubKey, KeyOriginInfo> out;
     bool ret = LookupHelper(origins, keyid, out);
-    if (ret) info = std::move(out.second);
+    
+    if (ret)
+        info = std::move(out.second);
+    
     return ret;
 }
-bool FlatSigningProvider::GetKey(const CKeyID& keyid, CKey& key) const { return LookupHelper(keys, keyid, key); }
 
-FlatSigningProvider Merge(const FlatSigningProvider& a, const FlatSigningProvider& b)
+bool FlatSigningProvider::GetKey(const CKeyID &keyid, CKey &key) const { return LookupHelper(keys, keyid, key); }
+
+FlatSigningProvider Merge(const FlatSigningProvider &a, const FlatSigningProvider &b)
 {
     FlatSigningProvider ret;
     ret.scripts = a.scripts;
@@ -69,7 +79,7 @@ FlatSigningProvider Merge(const FlatSigningProvider& a, const FlatSigningProvide
     return ret;
 }
 
-void FillableSigningProvider::ImplicitlyLearnRelatedKeyScripts(const CPubKey& pubkey)
+void FillableSigningProvider::ImplicitlyLearnRelatedKeyScripts(const CPubKey &pubkey)
 {
     AssertLockHeld(cs_KeyStore);
     CKeyID key_id = pubkey.GetID();
@@ -95,14 +105,16 @@ void FillableSigningProvider::ImplicitlyLearnRelatedKeyScripts(const CPubKey& pu
 bool FillableSigningProvider::GetPubKey(const CKeyID &address, CPubKey &vchPubKeyOut) const
 {
     CKey key;
-    if (!GetKey(address, key)) {
+
+    if (!GetKey(address, key))
         return false;
-    }
+
     vchPubKeyOut = key.GetPubKey();
+
     return true;
 }
 
-bool FillableSigningProvider::AddKeyPubKey(const CKey& key, const CPubKey &pubkey)
+bool FillableSigningProvider::AddKeyPubKey(const CKey &key, const CPubKey &pubkey)
 {
     LOCK(cs_KeyStore);
     mapKeys[pubkey.GetID()] = key;
@@ -120,9 +132,10 @@ std::set<CKeyID> FillableSigningProvider::GetKeys() const
 {
     LOCK(cs_KeyStore);
     std::set<CKeyID> set_address;
-    for (const auto& mi : mapKeys) {
+    
+    for (const auto &mi : mapKeys)
         set_address.insert(mi.first);
-    }
+
     return set_address;
 }
 
@@ -130,24 +143,27 @@ bool FillableSigningProvider::GetKey(const CKeyID &address, CKey &keyOut) const
 {
     LOCK(cs_KeyStore);
     KeyMap::const_iterator mi = mapKeys.find(address);
+
     if (mi != mapKeys.end()) {
         keyOut = mi->second;
         return true;
     }
+
     return false;
 }
 
-bool FillableSigningProvider::AddCScript(const CScript& redeemScript)
+bool FillableSigningProvider::AddCScript(const CScript &redeemScript)
 {
     if (redeemScript.size() > MAX_SCRIPT_ELEMENT_SIZE)
         return error("FillableSigningProvider::AddCScript(): redeemScripts > %i bytes are invalid", MAX_SCRIPT_ELEMENT_SIZE);
 
     LOCK(cs_KeyStore);
     mapScripts[CScriptID(redeemScript)] = redeemScript;
+
     return true;
 }
 
-bool FillableSigningProvider::HaveCScript(const CScriptID& hash) const
+bool FillableSigningProvider::HaveCScript(const CScriptID &hash) const
 {
     LOCK(cs_KeyStore);
     return mapScripts.count(hash) > 0;
@@ -157,43 +173,44 @@ std::set<CScriptID> FillableSigningProvider::GetCScripts() const
 {
     LOCK(cs_KeyStore);
     std::set<CScriptID> set_script;
-    for (const auto& mi : mapScripts) {
+
+    for (const auto &mi : mapScripts)
         set_script.insert(mi.first);
-    }
+
     return set_script;
 }
 
-bool FillableSigningProvider::GetCScript(const CScriptID &hash, CScript& redeemScriptOut) const
+bool FillableSigningProvider::GetCScript(const CScriptID &hash, CScript &redeemScriptOut) const
 {
     LOCK(cs_KeyStore);
     ScriptMap::const_iterator mi = mapScripts.find(hash);
-    if (mi != mapScripts.end())
-    {
-        redeemScriptOut = (*mi).second;
+    
+    if (mi != mapScripts.end()) {
+        redeemScriptOut = mi->second;
         return true;
     }
+
     return false;
 }
 
-CKeyID GetKeyForDestination(const SigningProvider& store, const CTxDestination& dest)
+CKeyID GetKeyForDestination(const SigningProvider &store, const CTxDestination &dest)
 {
     // Only supports destinations which map to single public keys, i.e. P2PKH,
     // P2WPKH, and P2SH-P2WPKH.
-    if (auto id = boost::get<PKHash>(&dest)) {
+    if (auto id = boost::get<PKHash>(&dest))
         return ToKeyID(*id);
-    }
-    if (auto witness_id = boost::get<WitnessV0KeyHash>(&dest)) {
+
+    if (auto witness_id = boost::get<WitnessV0KeyHash>(&dest))
         return ToKeyID(*witness_id);
-    }
+
     if (auto script_hash = boost::get<ScriptHash>(&dest)) {
         CScript script;
         CScriptID script_id(*script_hash);
         CTxDestination inner_dest;
-        if (store.GetCScript(script_id, script) && ExtractDestination(script, inner_dest)) {
-            if (auto inner_witness_id = boost::get<WitnessV0KeyHash>(&inner_dest)) {
+        if (store.GetCScript(script_id, script) && ExtractDestination(script, inner_dest))
+            if (auto inner_witness_id = boost::get<WitnessV0KeyHash>(&inner_dest))
                 return ToKeyID(*inner_witness_id);
-            }
-        }
     }
+    
     return CKeyID();
 }
