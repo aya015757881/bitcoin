@@ -450,7 +450,7 @@ namespace {
 /** Dummy signature checker which accepts all signatures. */
 class DummySignatureChecker final : public BaseSignatureChecker {
 public:
-    DummySignatureChecker() {}
+    DummySignatureChecker() { }
     bool CheckSig(const std::vector<unsigned char> &scriptSig,
                     const std::vector<unsigned char> &vchPubKey,
                     const CScript &scriptCode,

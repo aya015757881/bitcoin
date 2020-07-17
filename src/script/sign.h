@@ -38,7 +38,7 @@ public:
 
 /** A signature creator for transactions. */
 class MutableTransactionSignatureCreator : public BaseSignatureCreator {
-    const CMutableTransaction* txTo;
+    const CMutableTransaction *txTo;
     unsigned int nIn;
     int nHashType;
     CAmount amount;
