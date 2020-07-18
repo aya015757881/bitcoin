@@ -1320,7 +1320,13 @@ template PrecomputedTransactionData::PrecomputedTransactionData(const CTransacti
 template PrecomputedTransactionData::PrecomputedTransactionData(const CMutableTransaction& txTo);
 
 template <class T>
-uint256 SignatureHash(const CScript& scriptCode, const T& txTo, unsigned int nIn, int nHashType, const CAmount& amount, SigVersion sigversion, const PrecomputedTransactionData* cache)
+uint256 SignatureHash(const CScript &scriptCode,
+                        const T &txTo,
+                        unsigned int nIn,
+                        int nHashType,
+                        const CAmount &amount,
+                        SigVersion sigversion,
+                        const PrecomputedTransactionData *cache)
 {
     assert(nIn < txTo.vin.size());
 
@@ -1330,18 +1336,15 @@ uint256 SignatureHash(const CScript& scriptCode, const T& txTo, unsigned int nIn
         uint256 hashOutputs;
         const bool cacheready = cache && cache->m_ready;
 
-        if (!(nHashType & SIGHASH_ANYONECANPAY)) {
+        if (!(nHashType & SIGHASH_ANYONECANPAY))
             hashPrevouts = cacheready ? cache->hashPrevouts : GetPrevoutHash(txTo);
-        }
 
-        if (!(nHashType & SIGHASH_ANYONECANPAY) && (nHashType & 0x1f) != SIGHASH_SINGLE && (nHashType & 0x1f) != SIGHASH_NONE) {
+        if (!(nHashType & SIGHASH_ANYONECANPAY) && (nHashType & 0x1f) != SIGHASH_SINGLE && (nHashType & 0x1f) != SIGHASH_NONE)
             hashSequence = cacheready ? cache->hashSequence : GetSequenceHash(txTo);
-        }
 
-
-        if ((nHashType & 0x1f) != SIGHASH_SINGLE && (nHashType & 0x1f) != SIGHASH_NONE) {
+        if ((nHashType & 0x1f) != SIGHASH_SINGLE && (nHashType & 0x1f) != SIGHASH_NONE)
             hashOutputs = cacheready ? cache->hashOutputs : GetOutputsHash(txTo);
-        } else if ((nHashType & 0x1f) == SIGHASH_SINGLE && nIn < txTo.vout.size()) {
+        else if ((nHashType & 0x1f) == SIGHASH_SINGLE && nIn < txTo.vout.size()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss << txTo.vout[nIn];
             hashOutputs = ss.GetHash();
@@ -1384,6 +1387,7 @@ uint256 SignatureHash(const CScript& scriptCode, const T& txTo, unsigned int nIn
     // Serialize and hash
     CHashWriter ss(SER_GETHASH, 0);
     ss << txTmp << nHashType;
+    
     return ss.GetHash();
 }
 

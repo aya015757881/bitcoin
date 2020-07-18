@@ -43,13 +43,14 @@ class MutableTransactionSignatureCreator : public BaseSignatureCreator {
     int nHashType;
     CAmount amount;
     const MutableTransactionSignatureChecker checker;
-
 public:
     MutableTransactionSignatureCreator(const CMutableTransaction *txToIn,
                                         unsigned int nInIn,
                                         const CAmount &amountIn,
                                         int nHashTypeIn = SIGHASH_ALL);
+
     const BaseSignatureChecker &Checker() const override { return checker; }
+    
     bool CreateSig(const SigningProvider &provider,
                     std::vector<unsigned char> &vchSig,
                     const CKeyID &keyid,
@@ -58,9 +59,9 @@ public:
 };
 
 /** A signature creator that just produces 71-byte empty signatures. */
-extern const BaseSignatureCreator& DUMMY_SIGNATURE_CREATOR;
+extern const BaseSignatureCreator &DUMMY_SIGNATURE_CREATOR;
 /** A signature creator that just produces 72-byte empty signatures. */
-extern const BaseSignatureCreator& DUMMY_MAXIMUM_SIGNATURE_CREATOR;
+extern const BaseSignatureCreator &DUMMY_MAXIMUM_SIGNATURE_CREATOR;
 
 typedef std::pair<CPubKey, std::vector<unsigned char>> SigPair;
 
@@ -89,7 +90,7 @@ struct SignatureData {
 // Takes a stream and multiple arguments and serializes them as if first serialized into a vector and then into the stream
 // The resulting output into the stream has the total serialized length of all of the objects followed by all objects concatenated with each other.
 template<typename Stream, typename... X>
-void SerializeToVector(Stream& s, const X&... args)
+void SerializeToVector(Stream &s, const X&... args)
 {
     WriteCompactSize(s, GetSerializeSizeMany(s.GetVersion(), args...));
     SerializeMany(s, args...);
@@ -103,6 +104,7 @@ void UnserializeFromVector(Stream &s, X&... args)
     size_t remaining_before = s.size();
     UnserializeMany(s, args...);
     size_t remaining_after = s.size();
+    
     if (remaining_after + expected_size != remaining_before)
         throw std::ios_base::failure("Size of value was not the stated size");
 }
@@ -119,17 +121,19 @@ void DeserializeHDKeypaths(Stream &s, const std::vector<unsigned char> &key, std
     CPubKey pubkey(key.begin() + 1, key.end());
     
     if (!pubkey.IsFullyValid())
-       throw std::ios_base::failure("Invalid pubkey");
+        throw std::ios_base::failure("Invalid pubkey");
 
     if (hd_keypaths.count(pubkey) > 0)
         throw std::ios_base::failure("Duplicate Key, pubkey derivation path already provided");
 
     // Read in key path
     uint64_t value_len = ReadCompactSize(s);
+
     if (value_len % 4 || value_len == 0)
         throw std::ios_base::failure("Invalid length for HD key path");
 
     KeyOriginInfo keypath;
+    
     s >> keypath.fingerprint;
 
     for (unsigned int i = 4; i < value_len; i += sizeof(uint32_t)) {
@@ -152,7 +156,7 @@ void SerializeHDKeypaths(Stream &s, const std::map<CPubKey, KeyOriginInfo> &hd_k
         SerializeToVector(s, type, MakeSpan(keypath_pair.first));
         WriteCompactSize(s, (keypath_pair.second.path.size() + 1) * sizeof(uint32_t));
         s << keypath_pair.second.fingerprint;
-        for (const auto& path : keypath_pair.second.path)
+        for (const auto &path : keypath_pair.second.path)
             s << path;
     }
 }

@@ -82,7 +82,8 @@ static bool GetPubKey(const SigningProvider &provider,
     }
 
     // Look for pubkey in pubkey list
-    const auto& pk_it = sigdata.misc_pubkeys.find(address);
+    const auto &pk_it = sigdata.misc_pubkeys.find(address);
+    
     if (pk_it != sigdata.misc_pubkeys.end()) {
         pubkey = pk_it->second.first;
         return true;
@@ -153,7 +154,8 @@ static bool SignStep(const SigningProvider &provider,
     case TxoutType::WITNESS_UNKNOWN:
         return false;
     case TxoutType::PUBKEY:
-        if (!CreateSig(creator, sigdata, provider, sig, CPubKey(vSolutions[0]), scriptPubKey, sigversion)) return false;
+        if (!CreateSig(creator, sigdata, provider, sig, CPubKey(vSolutions[0]), scriptPubKey, sigversion))
+            return false;
         ret.push_back(std::move(sig));
         return true;
     case TxoutType::PUBKEYHASH: {
@@ -217,14 +219,13 @@ static CScript PushAll(const std::vector<valtype> &values)
 {
     CScript result;
 
-    for (const valtype &v : values) {
+    for (const valtype &v : values)
         if (v.size() == 0)
             result << OP_0;
         else if (v.size() == 1 && v[0] >= 1 && v[0] <= 16)
             result << CScript::EncodeOP_N(v[0]);
         else
             result << v;
-    }
 
     return result;
 }
@@ -234,7 +235,8 @@ bool ProduceSignature(const SigningProvider &provider,
                         const CScript &fromPubKey,
                         SignatureData &sigdata)
 {
-    if (sigdata.complete) return true;
+    if (sigdata.complete)
+        return true;
 
     std::vector<valtype> result;
     TxoutType whichType;
@@ -249,7 +251,9 @@ bool ProduceSignature(const SigningProvider &provider,
         // and then the serialized subscript:
         subscript = CScript(result[0].begin(), result[0].end());
         sigdata.redeem_script = subscript;
-        solved = solved && SignStep(provider, creator, subscript, result, whichType, SigVersion::BASE, sigdata) && whichType != TxoutType::SCRIPTHASH;
+        solved = solved &&
+                    SignStep(provider, creator, subscript, result, whichType, SigVersion::BASE, sigdata) &&
+                    whichType != TxoutType::SCRIPTHASH;
         P2SH = true;
     }
 
@@ -291,9 +295,8 @@ bool ProduceSignature(const SigningProvider &provider,
 namespace {
 class SignatureExtractorChecker final : public BaseSignatureChecker {
 private:
-    SignatureData& sigdata;
-    BaseSignatureChecker& checker;
-
+    SignatureData &sigdata;
+    BaseSignatureChecker &checker;
 public:
     SignatureExtractorChecker(SignatureData &sigdata, BaseSignatureChecker &checker) : sigdata(sigdata), checker(checker) { }
     bool CheckSig(const std::vector<unsigned char> &scriptSig,

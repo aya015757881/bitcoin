@@ -79,9 +79,8 @@
  *   is useless in that context.
  */
 template<typename C>
-class Span
-{
-    C* m_data;
+class Span {
+    C *m_data;
     std::size_t m_size;
 
 public:
