@@ -524,7 +524,7 @@ bool IsSegWitOutput(const SigningProvider &provider, const CScript &script)
     if (whichtype == TxoutType::WITNESS_V0_SCRIPTHASH ||
         whichtype == TxoutType::WITNESS_V0_KEYHASH ||
         whichtype == TxoutType::WITNESS_UNKNOWN)
-            return true;
+        return true;
 
     if (whichtype == TxoutType::SCRIPTHASH) {
         auto h160 = uint160(solutions[0]);
@@ -534,7 +534,7 @@ bool IsSegWitOutput(const SigningProvider &provider, const CScript &script)
             if (whichtype == TxoutType::WITNESS_V0_SCRIPTHASH ||
                 whichtype == TxoutType::WITNESS_V0_KEYHASH ||
                 whichtype == TxoutType::WITNESS_UNKNOWN)
-                    return true;
+                return true;
         }
     }
 
