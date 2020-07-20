@@ -117,7 +117,9 @@ enum {
 bool CheckSignatureEncoding(const std::vector<unsigned char> &vchSig, unsigned int flags, ScriptError *serror);
 
 struct PrecomputedTransactionData {
-    uint256 hashPrevouts, hashSequence, hashOutputs;
+    uint256 hashPrevouts;
+    uint256 hashSequence;
+    uint256 hashOutputs;
     bool m_ready = false;
 
     PrecomputedTransactionData() = default;

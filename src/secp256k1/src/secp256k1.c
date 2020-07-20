@@ -396,7 +396,8 @@ int secp256k1_ecdsa_signature_serialize_compact(const secp256k1_context* ctx, un
     return 1;
 }
 
-int secp256k1_ecdsa_signature_normalize(const secp256k1_context* ctx, secp256k1_ecdsa_signature *sigout, const secp256k1_ecdsa_signature *sigin) {
+int secp256k1_ecdsa_signature_normalize(const secp256k1_context* ctx, secp256k1_ecdsa_signature *sigout, const secp256k1_ecdsa_signature *sigin)
+{
     secp256k1_scalar r, s;
     int ret = 0;
 
@@ -405,10 +406,10 @@ int secp256k1_ecdsa_signature_normalize(const secp256k1_context* ctx, secp256k1_
 
     secp256k1_ecdsa_signature_load(ctx, &r, &s, sigin);
     ret = secp256k1_scalar_is_high(&s);
+
     if (sigout != NULL) {
-        if (ret) {
+        if (ret)
             secp256k1_scalar_negate(&s, &s);
-        }
         secp256k1_ecdsa_signature_save(sigout, &r, &s);
     }
 
