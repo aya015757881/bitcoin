@@ -1442,7 +1442,7 @@ bool GenericTransactionSignatureChecker<T>::CheckSig(const std::vector<unsigned 
 }
 
 template <class T>
-bool GenericTransactionSignatureChecker<T>::CheckLockTime(const CScriptNum& nLockTime) const
+bool GenericTransactionSignatureChecker<T>::CheckLockTime(const CScriptNum &nLockTime) const
 {
     // There are two kinds of nLockTime: lock-by-blockheight
     // and lock-by-blocktime, distinguished by whether
