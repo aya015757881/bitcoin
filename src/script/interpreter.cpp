@@ -423,20 +423,21 @@ bool EvalScript(std::vector<std::vector<unsigned char>> &stack,
     ConditionStack vfExec;
     std::vector<valtype> altstack;
     set_error(serror, SCRIPT_ERR_UNKNOWN_ERROR);
+
     if (script.size() > MAX_SCRIPT_SIZE)
         return set_error(serror, SCRIPT_ERR_SCRIPT_SIZE);
+
     int nOpCount = 0;
     bool fRequireMinimal = (flags & SCRIPT_VERIFY_MINIMALDATA) != 0;
 
     try {
         while (pc < pend) {
             bool fExec = vfExec.all_true();
-
-            //
+            
             // Read instruction
-            //
             if (!script.GetOp(pc, opcode, vchPushValue))
                 return set_error(serror, SCRIPT_ERR_BAD_OPCODE);
+
             if (vchPushValue.size() > MAX_SCRIPT_ELEMENT_SIZE)
                 return set_error(serror, SCRIPT_ERR_PUSH_SIZE);
 
@@ -466,16 +467,12 @@ bool EvalScript(std::vector<std::vector<unsigned char>> &stack,
                 return set_error(serror, SCRIPT_ERR_OP_CODESEPARATOR);
 
             if (fExec && 0 <= opcode && opcode <= OP_PUSHDATA4) {
-                if (fRequireMinimal && !CheckMinimalPush(vchPushValue, opcode)) {
+                if (fRequireMinimal && !CheckMinimalPush(vchPushValue, opcode))
                     return set_error(serror, SCRIPT_ERR_MINIMALDATA);
-                }
                 stack.push_back(vchPushValue);
             } else if (fExec || (OP_IF <= opcode && opcode <= OP_ENDIF))
-            switch (opcode)
-            {
-                //
+            switch (opcode) {
                 // Push value
-                //
                 case OP_1NEGATE:
                 case OP_1:
                 case OP_2:
@@ -650,11 +647,7 @@ bool EvalScript(std::vector<std::vector<unsigned char>> &stack,
                     return set_error(serror, SCRIPT_ERR_OP_RETURN);
                 }
                 break;
-
-
-                //
                 // Stack ops
-                //
                 case OP_TOALTSTACK:
                 {
                     if (stack.size() < 1)
