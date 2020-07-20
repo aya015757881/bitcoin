@@ -299,6 +299,7 @@ private:
     BaseSignatureChecker &checker;
 public:
     SignatureExtractorChecker(SignatureData &sigdata, BaseSignatureChecker &checker) : sigdata(sigdata), checker(checker) { }
+    
     bool CheckSig(const std::vector<unsigned char> &scriptSig,
                     const std::vector<unsigned char> &vchPubKey,
                     const CScript &scriptCode,
@@ -319,7 +320,7 @@ struct Stacks {
 
     Stacks() = delete;
     Stacks(const Stacks&) = delete;
-    explicit Stacks(const SignatureData& data) : witness(data.scriptWitness.stack) {
+    explicit Stacks(const SignatureData &data) : witness(data.scriptWitness.stack) {
         EvalScript(script, data.scriptSig, SCRIPT_VERIFY_STRICTENC, BaseSignatureChecker(), SigVersion::BASE);
     }
 };
@@ -327,6 +328,7 @@ struct Stacks {
 
 // Extracts signatures and scripts from incomplete scriptSigs. Please do not extend this, use PSBT instead
 SignatureData DataFromTransaction(const CMutableTransaction &tx, unsigned int nIn, const CTxOut &txout) {
+    
     SignatureData data;
     assert(tx.vin.size() > nIn);
     data.scriptSig = tx.vin[nIn].scriptSig;
@@ -376,11 +378,11 @@ SignatureData DataFromTransaction(const CMutableTransaction &tx, unsigned int nI
     if (script_type == TxoutType::MULTISIG && !stack.script.empty()) {
         // Build a map of pubkey -> signature by matching sigs to pubkeys:
         assert(solutions.size() > 1);
-        unsigned int num_pubkeys = solutions.size()-2;
+        unsigned int num_pubkeys = solutions.size() - 2;
         unsigned int last_success_key = 0;
-        for (const valtype& sig : stack.script)
+        for (const valtype &sig : stack.script)
             for (unsigned int i = last_success_key; i < num_pubkeys; ++i) {
-                const valtype& pubkey = solutions[i+1];
+                const valtype &pubkey = solutions[i + 1];
                 // We either have a signature for this pubkey, or we have found a signature and it is valid
                 if (data.signatures.count(CPubKey(pubkey).GetID()) || extractor_checker.CheckSig(sig, pubkey, next_script, sigversion)) {
                     last_success_key = i + 1;
@@ -442,9 +444,9 @@ bool SignSignature(const SigningProvider &provider,
                     int nHashType)
 {
     assert(nIn < txTo.vin.size());
-    CTxIn& txin = txTo.vin[nIn];
+    CTxIn &txin = txTo.vin[nIn];
     assert(txin.prevout.n < txFrom.vout.size());
-    const CTxOut& txout = txFrom.vout[txin.prevout.n];
+    const CTxOut &txout = txFrom.vout[txin.prevout.n];
 
     return SignSignature(provider, txout.scriptPubKey, txTo, nIn, txout.nValue, nHashType);
 }
@@ -489,11 +491,10 @@ public:
         return true;
     }
 };
-
 }
 
-const BaseSignatureCreator& DUMMY_SIGNATURE_CREATOR = DummySignatureCreator(32, 32);
-const BaseSignatureCreator& DUMMY_MAXIMUM_SIGNATURE_CREATOR = DummySignatureCreator(33, 32);
+const BaseSignatureCreator &DUMMY_SIGNATURE_CREATOR = DummySignatureCreator(32, 32);
+const BaseSignatureCreator &DUMMY_MAXIMUM_SIGNATURE_CREATOR = DummySignatureCreator(33, 32);
 
 bool IsSolvable(const SigningProvider &provider, const CScript &script)
 {
@@ -567,6 +568,7 @@ bool SignTransaction(CMutableTransaction &mtx,
         const CAmount &amount = coin->second.out.nValue;
 
         SignatureData sigdata = DataFromTransaction(mtx, i, coin->second.out);
+        
         // Only sign SIGHASH_SINGLE if there's a corresponding output:
         if (!fHashSingle || (i < mtx.vout.size()))
             ProduceSignature(*keystore, MutableTransactionSignatureCreator(&mtx, i, amount, nHashType), prevPubKey, sigdata);

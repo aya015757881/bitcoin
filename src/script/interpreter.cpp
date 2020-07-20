@@ -371,7 +371,12 @@ static bool EvalChecksig(const valtype& vchSig, const valtype& vchPubKey, CScrip
     return true;
 }
 
-bool EvalScript(std::vector<std::vector<unsigned char> >& stack, const CScript& script, unsigned int flags, const BaseSignatureChecker& checker, SigVersion sigversion, ScriptError* serror)
+bool EvalScript(std::vector<std::vector<unsigned char>> &stack,
+                const CScript &script,
+                unsigned int flags,
+                const BaseSignatureChecker &checker,
+                SigVersion sigversion,
+                ScriptError *serror)
 {
     static const CScriptNum bnZero(0);
     static const CScriptNum bnOne(1);
@@ -1404,13 +1409,16 @@ bool GenericTransactionSignatureChecker<T>::CheckSig(const std::vector<unsigned 
                                                         SigVersion sigversion) const
 {
     CPubKey pubkey(vchPubKey);
+    
     if (!pubkey.IsValid())
         return false;
 
     // Hash type is one byte tacked on to the end of the signature
     std::vector<unsigned char> vchSig(vchSigIn);
+    
     if (vchSig.empty())
         return false;
+    
     int nHashType = vchSig.back();
     vchSig.pop_back();
 
@@ -1567,39 +1575,51 @@ static bool VerifyWitnessProgram(const CScriptWitness& witness, int witversion, 
     // There is intentionally no return statement here, to be able to use "control reaches end of non-void function" warnings to detect gaps in the logic above.
 }
 
-bool VerifyScript(const CScript& scriptSig, const CScript& scriptPubKey, const CScriptWitness* witness, unsigned int flags, const BaseSignatureChecker& checker, ScriptError* serror)
+bool VerifyScript(const CScript &scriptSig,
+                    const CScript &scriptPubKey,
+                    const CScriptWitness *witness,
+                    unsigned int flags,
+                    const BaseSignatureChecker &checker,
+                    ScriptError *serror)
 {
     static const CScriptWitness emptyWitness;
-    if (witness == nullptr) {
-        witness = &emptyWitness;
-    }
-    bool hadWitness = false;
 
+    if (witness == nullptr)
+        witness = &emptyWitness;
+
+    bool hadWitness = false;
     set_error(serror, SCRIPT_ERR_UNKNOWN_ERROR);
 
-    if ((flags & SCRIPT_VERIFY_SIGPUSHONLY) != 0 && !scriptSig.IsPushOnly()) {
+    if ((flags & SCRIPT_VERIFY_SIGPUSHONLY) != 0 && !scriptSig.IsPushOnly())
         return set_error(serror, SCRIPT_ERR_SIG_PUSHONLY);
-    }
 
     // scriptSig and scriptPubKey must be evaluated sequentially on the same stack
     // rather than being simply concatenated (see CVE-2010-5141)
     std::vector<std::vector<unsigned char> > stack, stackCopy;
-    if (!EvalScript(stack, scriptSig, flags, checker, SigVersion::BASE, serror))
+
+    if (!EvalScript(stack, scriptSig, flags, checker, SigVersion::BASE, serror)) {
         // serror is set
         return false;
+    }
+
     if (flags & SCRIPT_VERIFY_P2SH)
         stackCopy = stack;
-    if (!EvalScript(stack, scriptPubKey, flags, checker, SigVersion::BASE, serror))
+    
+    if (!EvalScript(stack, scriptPubKey, flags, checker, SigVersion::BASE, serror)) {
         // serror is set
         return false;
+    }
+
     if (stack.empty())
         return set_error(serror, SCRIPT_ERR_EVAL_FALSE);
+
     if (CastToBool(stack.back()) == false)
         return set_error(serror, SCRIPT_ERR_EVAL_FALSE);
 
     // Bare witness programs
     int witnessversion;
     std::vector<unsigned char> witnessprogram;
+    
     if (flags & SCRIPT_VERIFY_WITNESS) {
         if (scriptPubKey.IsWitnessProgram(witnessversion, witnessprogram)) {
             hadWitness = true;
@@ -1617,8 +1637,7 @@ bool VerifyScript(const CScript& scriptSig, const CScript& scriptPubKey, const C
     }
 
     // Additional validation for spend-to-script-hash transactions:
-    if ((flags & SCRIPT_VERIFY_P2SH) && scriptPubKey.IsPayToScriptHash())
-    {
+    if ((flags & SCRIPT_VERIFY_P2SH) && scriptPubKey.IsPayToScriptHash()) {
         // scriptSig must be literals-only or validation fails
         if (!scriptSig.IsPushOnly())
             return set_error(serror, SCRIPT_ERR_SIG_PUSHONLY);
@@ -1635,11 +1654,14 @@ bool VerifyScript(const CScript& scriptSig, const CScript& scriptPubKey, const C
         CScript pubKey2(pubKeySerialized.begin(), pubKeySerialized.end());
         popstack(stack);
 
-        if (!EvalScript(stack, pubKey2, flags, checker, SigVersion::BASE, serror))
+        if (!EvalScript(stack, pubKey2, flags, checker, SigVersion::BASE, serror)) {
             // serror is set
             return false;
+        }
+
         if (stack.empty())
             return set_error(serror, SCRIPT_ERR_EVAL_FALSE);
+        
         if (!CastToBool(stack.back()))
             return set_error(serror, SCRIPT_ERR_EVAL_FALSE);
 
@@ -1670,9 +1692,8 @@ bool VerifyScript(const CScript& scriptSig, const CScript& scriptPubKey, const C
         // would be possible, which is not a softfork (and P2SH should be one).
         assert((flags & SCRIPT_VERIFY_P2SH) != 0);
         assert((flags & SCRIPT_VERIFY_WITNESS) != 0);
-        if (stack.size() != 1) {
+        if (stack.size() != 1)
             return set_error(serror, SCRIPT_ERR_CLEANSTACK);
-        }
     }
 
     if (flags & SCRIPT_VERIFY_WITNESS) {
@@ -1680,9 +1701,8 @@ bool VerifyScript(const CScript& scriptSig, const CScript& scriptPubKey, const C
         // that WITNESS implies P2SH. Otherwise, going from WITNESS->P2SH+WITNESS would be
         // possible, which is not a softfork.
         assert((flags & SCRIPT_VERIFY_P2SH) != 0);
-        if (!hadWitness && !witness->IsNull()) {
+        if (!hadWitness && !witness->IsNull())
             return set_error(serror, SCRIPT_ERR_WITNESS_UNEXPECTED);
-        }
     }
 
     return set_success(serror);
