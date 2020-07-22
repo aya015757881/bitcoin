@@ -317,14 +317,14 @@ public:
 
     static std::vector<unsigned char> serialize(const int64_t &value) {
         
-        if(value == 0)
+        if (!value)
             return std::vector<unsigned char>();
 
         std::vector<unsigned char> result;
         const bool neg = value < 0;
         uint64_t absvalue = neg ? ~static_cast<uint64_t>(value) + 1 : static_cast<uint64_t>(value);
 
-        while(absvalue) {
+        while (absvalue) {
             result.push_back(absvalue & 0xff);
             absvalue >>= 8;
         }

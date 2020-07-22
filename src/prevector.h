@@ -96,7 +96,7 @@ public:
     };
 
     class const_iterator {
-        const T* ptr;
+        const T *ptr;
     public:
         typedef Diff difference_type;
         typedef const T value_type;

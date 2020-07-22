@@ -24,7 +24,10 @@ secp256k1_context *secp256k1_context_verify = nullptr;
  *  strict DER before being passed to this module, and we know it supports all
  *  violations present in the blockchain before that point.
  */
-static int ecdsa_signature_parse_der_lax(const secp256k1_context *ctx, secp256k1_ecdsa_signature *sig, const unsigned char *input, size_t inputlen)
+static int ecdsa_signature_parse_der_lax(const secp256k1_context *ctx,
+                                            secp256k1_ecdsa_signature *sig,
+                                            const unsigned char *input,
+                                            size_t inputlen)
 {
     size_t rpos, rlen, spos, slen;
     size_t pos = 0;
@@ -39,7 +42,7 @@ static int ecdsa_signature_parse_der_lax(const secp256k1_context *ctx, secp256k1
     if (pos == inputlen || input[pos] != 0x30)
         return 0;
 
-    pos++;
+    ++pos;
 
     /* Sequence length bytes */
     if (pos == inputlen)
@@ -58,7 +61,7 @@ static int ecdsa_signature_parse_der_lax(const secp256k1_context *ctx, secp256k1
     if (pos == inputlen || input[pos] != 0x02)
         return 0;
 
-    pos++;
+    ++pos;
 
     /* Integer length for R */
     if (pos == inputlen)
@@ -73,8 +76,8 @@ static int ecdsa_signature_parse_der_lax(const secp256k1_context *ctx, secp256k1
             return 0;
 
         while (lenbyte > 0 && input[pos] == 0) {
-            pos++;
-            lenbyte--;
+            ++pos;
+            --lenbyte;
         }
 
         static_assert(sizeof(size_t) >= 4, "size_t too small");
@@ -86,8 +89,8 @@ static int ecdsa_signature_parse_der_lax(const secp256k1_context *ctx, secp256k1
 
         while (lenbyte > 0) {
             rlen = (rlen << 8) + input[pos];
-            pos++;
-            lenbyte--;
+            ++pos;
+            --lenbyte;
         }
     } else
         rlen = lenbyte;
@@ -102,7 +105,7 @@ static int ecdsa_signature_parse_der_lax(const secp256k1_context *ctx, secp256k1
     if (pos == inputlen || input[pos] != 0x02)
         return 0;
 
-    pos++;
+    ++pos;
 
     /* Integer length for S */
     if (pos == inputlen)
@@ -115,8 +118,8 @@ static int ecdsa_signature_parse_der_lax(const secp256k1_context *ctx, secp256k1
         if (lenbyte > inputlen - pos)
             return 0;
         while (lenbyte > 0 && input[pos] == 0) {
-            pos++;
-            lenbyte--;
+            ++pos;
+            --lenbyte;
         }
 
         static_assert(sizeof(size_t) >= 4, "size_t too small");
@@ -128,8 +131,8 @@ static int ecdsa_signature_parse_der_lax(const secp256k1_context *ctx, secp256k1
 
         while (lenbyte > 0) {
             slen = (slen << 8) + input[pos];
-            pos++;
-            lenbyte--;
+            ++pos;
+            --lenbyte;
         }
     } else
         slen = lenbyte;
@@ -141,8 +144,8 @@ static int ecdsa_signature_parse_der_lax(const secp256k1_context *ctx, secp256k1
 
     /* Ignore leading zeroes in R */
     while (rlen > 0 && input[rpos] == 0) {
-        rlen--;
-        rpos++;
+        --rlen;
+        ++rpos;
     }
     /* Copy R value */
     if (rlen > 32)
@@ -152,8 +155,8 @@ static int ecdsa_signature_parse_der_lax(const secp256k1_context *ctx, secp256k1
 
     /* Ignore leading zeroes in S */
     while (slen > 0 && input[spos] == 0) {
-        slen--;
-        spos++;
+        --slen;
+        ++spos;
     }
     /* Copy S value */
     if (slen > 32)
