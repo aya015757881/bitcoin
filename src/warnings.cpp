@@ -17,7 +17,7 @@ static bilingual_str g_misc_warnings GUARDED_BY(g_warnings_mutex);
 static bool fLargeWorkForkFound GUARDED_BY(g_warnings_mutex) = false;
 static bool fLargeWorkInvalidChainFound GUARDED_BY(g_warnings_mutex) = false;
 
-void SetMiscWarning(const bilingual_str& warning)
+void SetMiscWarning(const bilingual_str &warning)
 {
     LOCK(g_warnings_mutex);
     g_misc_warnings = warning;

@@ -16,8 +16,7 @@
     any current sleep, and after that point operator bool() will return true
     until reset.
 */
-class CThreadInterrupt
-{
+class CThreadInterrupt {
 public:
     CThreadInterrupt();
     explicit operator bool() const;

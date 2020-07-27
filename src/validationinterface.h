@@ -24,9 +24,9 @@ class CScheduler;
 enum class MemPoolRemovalReason;
 
 /** Register subscriber */
-void RegisterValidationInterface(CValidationInterface* callbacks);
+void RegisterValidationInterface(CValidationInterface *callbacks);
 /** Unregister subscriber. DEPRECATED. This is not safe to use when the RPC server or main message handler thread is running. */
-void UnregisterValidationInterface(CValidationInterface* callbacks);
+void UnregisterValidationInterface(CValidationInterface *callbacks);
 /** Unregister all subscribers */
 void UnregisterAllValidationInterfaces();
 
@@ -91,13 +91,13 @@ protected:
      *
      * Called on a background thread.
      */
-    virtual void UpdatedBlockTip(const CBlockIndex *pindexNew, const CBlockIndex *pindexFork, bool fInitialDownload) {}
+    virtual void UpdatedBlockTip(const CBlockIndex *pindexNew, const CBlockIndex *pindexFork, bool fInitialDownload) { }
     /**
      * Notifies listeners of a transaction having been added to mempool.
      *
      * Called on a background thread.
      */
-    virtual void TransactionAddedToMempool(const CTransactionRef& tx) {}
+    virtual void TransactionAddedToMempool(const CTransactionRef &tx) { }
     /**
      * Notifies listeners of a transaction leaving mempool.
      *
@@ -130,20 +130,20 @@ protected:
      *
      * Called on a background thread.
      */
-    virtual void TransactionRemovedFromMempool(const CTransactionRef& tx, MemPoolRemovalReason reason) {}
+    virtual void TransactionRemovedFromMempool(const CTransactionRef &tx, MemPoolRemovalReason reason) { }
     /**
      * Notifies listeners of a block being connected.
      * Provides a vector of transactions evicted from the mempool as a result.
      *
      * Called on a background thread.
      */
-    virtual void BlockConnected(const std::shared_ptr<const CBlock> &block, const CBlockIndex *pindex) {}
+    virtual void BlockConnected(const std::shared_ptr<const CBlock> &block, const CBlockIndex *pindex) { }
     /**
      * Notifies listeners of a block being disconnected
      *
      * Called on a background thread.
      */
-    virtual void BlockDisconnected(const std::shared_ptr<const CBlock> &block, const CBlockIndex* pindex) {}
+    virtual void BlockDisconnected(const std::shared_ptr<const CBlock> &block, const CBlockIndex *pindex) { }
     /**
      * Notifies listeners of the new active block chain on-disk.
      *
@@ -160,18 +160,18 @@ protected:
      *
      * Called on a background thread.
      */
-    virtual void ChainStateFlushed(const CBlockLocator &locator) {}
+    virtual void ChainStateFlushed(const CBlockLocator &locator) { }
     /**
      * Notifies listeners of a block validation result.
      * If the provided BlockValidationState IsValid, the provided block
      * is guaranteed to be the current best block at the time the
      * callback was generated (not necessarily now)
      */
-    virtual void BlockChecked(const CBlock&, const BlockValidationState&) {}
+    virtual void BlockChecked(const CBlock&, const BlockValidationState&) { }
     /**
      * Notifies listeners that a block which builds directly on our current tip
      * has been received and connected to the headers tree, though not validated yet */
-    virtual void NewPoWValidBlock(const CBlockIndex *pindex, const std::shared_ptr<const CBlock>& block) {};
+    virtual void NewPoWValidBlock(const CBlockIndex *pindex, const std::shared_ptr<const CBlock> &block) { };
     friend class CMainSignals;
 };
 
@@ -187,7 +187,7 @@ private:
 
 public:
     /** Register a CScheduler to give callbacks which should run in the background (may only be called once) */
-    void RegisterBackgroundSignalScheduler(CScheduler& scheduler);
+    void RegisterBackgroundSignalScheduler(CScheduler &scheduler);
     /** Unregister a CScheduler to give callbacks which should run in the background - these callbacks will now be dropped! */
     void UnregisterBackgroundSignalScheduler();
     /** Call any remaining callbacks on the calling thread */
@@ -196,16 +196,16 @@ public:
     size_t CallbacksPending();
 
 
-    void UpdatedBlockTip(const CBlockIndex *, const CBlockIndex *, bool fInitialDownload);
+    void UpdatedBlockTip(const CBlockIndex*, const CBlockIndex*, bool fInitialDownload);
     void TransactionAddedToMempool(const CTransactionRef&);
     void TransactionRemovedFromMempool(const CTransactionRef&, MemPoolRemovalReason);
-    void BlockConnected(const std::shared_ptr<const CBlock> &, const CBlockIndex *pindex);
-    void BlockDisconnected(const std::shared_ptr<const CBlock> &, const CBlockIndex* pindex);
-    void ChainStateFlushed(const CBlockLocator &);
+    void BlockConnected(const std::shared_ptr<const CBlock>&, const CBlockIndex *pindex);
+    void BlockDisconnected(const std::shared_ptr<const CBlock>&, const CBlockIndex *pindex);
+    void ChainStateFlushed(const CBlockLocator&);
     void BlockChecked(const CBlock&, const BlockValidationState&);
-    void NewPoWValidBlock(const CBlockIndex *, const std::shared_ptr<const CBlock>&);
+    void NewPoWValidBlock(const CBlockIndex*, const std::shared_ptr<const CBlock>&);
 };
 
-CMainSignals& GetMainSignals();
+CMainSignals &GetMainSignals();
 
 #endif // BITCOIN_VALIDATIONINTERFACE_H

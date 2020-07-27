@@ -18,7 +18,7 @@ constexpr int64_t SYNC_LOG_INTERVAL = 30; // seconds
 constexpr int64_t SYNC_LOCATOR_WRITE_INTERVAL = 30; // seconds
 
 template <typename... Args>
-static void FatalError(const char* fmt, const Args&... args)
+static void FatalError(const char *fmt, const Args&... args)
 {
     std::string strMessage = tfm::format(fmt, args...);
     SetMiscWarning(Untranslated(strMessage));
@@ -27,20 +27,23 @@ static void FatalError(const char* fmt, const Args&... args)
     StartShutdown();
 }
 
-BaseIndex::DB::DB(const fs::path& path, size_t n_cache_size, bool f_memory, bool f_wipe, bool f_obfuscate) :
-    CDBWrapper(path, n_cache_size, f_memory, f_wipe, f_obfuscate)
-{}
+BaseIndex::DB::DB(const fs::path &path,
+                    size_t n_cache_size,
+                    bool f_memory,
+                    bool f_wipe,
+                    bool f_obfuscate) : CDBWrapper(path, n_cache_size, f_memory, f_wipe, f_obfuscate) { }
 
-bool BaseIndex::DB::ReadBestBlock(CBlockLocator& locator) const
+bool BaseIndex::DB::ReadBestBlock(CBlockLocator &locator) const
 {
     bool success = Read(DB_BEST_BLOCK, locator);
-    if (!success) {
+
+    if (!success)
         locator.SetNull();
-    }
+
     return success;
 }
 
-void BaseIndex::DB::WriteBestBlock(CDBBatch& batch, const CBlockLocator& locator)
+void BaseIndex::DB::WriteBestBlock(CDBBatch &batch, const CBlockLocator &locator)
 {
     batch.Write(DB_BEST_BLOCK, locator);
 }
@@ -54,44 +57,47 @@ BaseIndex::~BaseIndex()
 bool BaseIndex::Init()
 {
     CBlockLocator locator;
-    if (!GetDB().ReadBestBlock(locator)) {
+    
+    if (!GetDB().ReadBestBlock(locator))
         locator.SetNull();
-    }
 
     LOCK(cs_main);
-    if (locator.IsNull()) {
+
+    if (locator.IsNull())
         m_best_block_index = nullptr;
-    } else {
+    else
         m_best_block_index = FindForkInGlobalIndex(::ChainActive(), locator);
-    }
+
     m_synced = m_best_block_index.load() == ::ChainActive().Tip();
+
     return true;
 }
 
-static const CBlockIndex* NextSyncBlock(const CBlockIndex* pindex_prev) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
+static const CBlockIndex *NextSyncBlock(const CBlockIndex *pindex_prev) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
 {
     AssertLockHeld(cs_main);
 
-    if (!pindex_prev) {
+    if (!pindex_prev)
         return ::ChainActive().Genesis();
-    }
 
-    const CBlockIndex* pindex = ::ChainActive().Next(pindex_prev);
-    if (pindex) {
+    const CBlockIndex *pindex = ::ChainActive().Next(pindex_prev);
+
+    if (pindex)
         return pindex;
-    }
 
     return ::ChainActive().Next(::ChainActive().FindFork(pindex_prev));
 }
 
 void BaseIndex::ThreadSync()
 {
-    const CBlockIndex* pindex = m_best_block_index.load();
+    const CBlockIndex *pindex = m_best_block_index.load();
+    
     if (!m_synced) {
-        auto& consensus_params = Params().GetConsensus();
-
+        
+        auto &consensus_params = Params().GetConsensus();
         int64_t last_log_time = 0;
         int64_t last_locator_write_time = 0;
+
         while (true) {
             if (m_interrupt) {
                 m_best_block_index = pindex;
@@ -104,7 +110,7 @@ void BaseIndex::ThreadSync()
 
             {
                 LOCK(cs_main);
-                const CBlockIndex* pindex_next = NextSyncBlock(pindex);
+                const CBlockIndex *pindex_next = NextSyncBlock(pindex);
                 if (!pindex_next) {
                     m_best_block_index = pindex;
                     m_synced = true;
@@ -121,6 +127,7 @@ void BaseIndex::ThreadSync()
             }
 
             int64_t current_time = GetTime();
+        
             if (last_log_time + SYNC_LOG_INTERVAL < current_time) {
                 LogPrintf("Syncing %s with block chain from height %d\n",
                           GetName(), pindex->nHeight);
@@ -135,11 +142,13 @@ void BaseIndex::ThreadSync()
             }
 
             CBlock block;
+        
             if (!ReadBlockFromDisk(block, pindex, consensus_params)) {
                 FatalError("%s: Failed to read block %s from disk",
                            __func__, pindex->GetBlockHash().ToString());
                 return;
             }
+        
             if (!WriteBlock(block, pindex)) {
                 FatalError("%s: Failed to write block %s to index database",
                            __func__, pindex->GetBlockHash().ToString());
@@ -148,36 +157,37 @@ void BaseIndex::ThreadSync()
         }
     }
 
-    if (pindex) {
+    if (pindex)
         LogPrintf("%s is enabled at height %d\n", GetName(), pindex->nHeight);
-    } else {
+    else
         LogPrintf("%s is enabled\n", GetName());
-    }
 }
 
 bool BaseIndex::Commit()
 {
     CDBBatch batch(GetDB());
-    if (!CommitInternal(batch) || !GetDB().WriteBatch(batch)) {
+
+    if (!CommitInternal(batch) || !GetDB().WriteBatch(batch))
         return error("%s: Failed to commit latest %s state", __func__, GetName());
-    }
+
     return true;
 }
 
-bool BaseIndex::CommitInternal(CDBBatch& batch)
+bool BaseIndex::CommitInternal(CDBBatch &batch)
 {
     LOCK(cs_main);
     GetDB().WriteBestBlock(batch, ::ChainActive().GetLocator(m_best_block_index));
     return true;
 }
 
-bool BaseIndex::Rewind(const CBlockIndex* current_tip, const CBlockIndex* new_tip)
+bool BaseIndex::Rewind(const CBlockIndex *current_tip, const CBlockIndex *new_tip)
 {
     assert(current_tip == m_best_block_index);
     assert(current_tip->GetAncestor(new_tip->nHeight) == new_tip);
 
     // In the case of a reorg, ensure persisted block locator is not stale.
     m_best_block_index = new_tip;
+    
     if (!Commit()) {
         // If commit fails, revert the best block index to avoid corruption.
         m_best_block_index = current_tip;
@@ -187,15 +197,15 @@ bool BaseIndex::Rewind(const CBlockIndex* current_tip, const CBlockIndex* new_ti
     return true;
 }
 
-void BaseIndex::BlockConnected(const std::shared_ptr<const CBlock>& block, const CBlockIndex* pindex)
+void BaseIndex::BlockConnected(const std::shared_ptr<const CBlock> &block, const CBlockIndex *pindex)
 {
-    if (!m_synced) {
+    if (!m_synced)
         return;
-    }
 
     const CBlockIndex* best_block_index = m_best_block_index.load();
+    
     if (!best_block_index) {
-        if (pindex->nHeight != 0) {
+        if (pindex->nHeight) {
             FatalError("%s: First block connected is not the genesis block (height=%d)",
                        __func__, pindex->nHeight);
             return;
@@ -213,6 +223,7 @@ void BaseIndex::BlockConnected(const std::shared_ptr<const CBlock>& block, const
                       best_block_index->GetBlockHash().ToString());
             return;
         }
+
         if (best_block_index != pindex->pprev && !Rewind(best_block_index, pindex->pprev)) {
             FatalError("%s: Failed to rewind index %s to a previous chain tip",
                        __func__, GetName());
@@ -220,23 +231,23 @@ void BaseIndex::BlockConnected(const std::shared_ptr<const CBlock>& block, const
         }
     }
 
-    if (WriteBlock(*block, pindex)) {
+    if (WriteBlock(*block, pindex))
         m_best_block_index = pindex;
-    } else {
+    else {
         FatalError("%s: Failed to write block %s to index",
                    __func__, pindex->GetBlockHash().ToString());
         return;
     }
 }
 
-void BaseIndex::ChainStateFlushed(const CBlockLocator& locator)
+void BaseIndex::ChainStateFlushed(const CBlockLocator &locator)
 {
-    if (!m_synced) {
+    if (!m_synced)
         return;
-    }
 
     const uint256& locator_tip_hash = locator.vHave.front();
-    const CBlockIndex* locator_tip_index;
+    const CBlockIndex *locator_tip_index;
+    
     {
         LOCK(cs_main);
         locator_tip_index = LookupBlockIndex(locator_tip_hash);
@@ -253,7 +264,8 @@ void BaseIndex::ChainStateFlushed(const CBlockLocator& locator)
     // there is a reorg and the blocks on the stale branch are in the ValidationInterface queue
     // backlog even after the sync thread has caught up to the new chain tip. In this unlikely
     // event, log a warning and let the queue clear.
-    const CBlockIndex* best_block_index = m_best_block_index.load();
+    const CBlockIndex *best_block_index = m_best_block_index.load();
+    
     if (best_block_index->GetAncestor(locator_tip_index->nHeight) != locator_tip_index) {
         LogPrintf("%s: WARNING: Locator contains block (hash=%s) not on known best " /* Continued */
                   "chain (tip=%s); not writing index locator\n",
@@ -272,19 +284,18 @@ bool BaseIndex::BlockUntilSyncedToCurrentChain() const
 {
     AssertLockNotHeld(cs_main);
 
-    if (!m_synced) {
+    if (!m_synced)
         return false;
-    }
 
     {
         // Skip the queue-draining stuff if we know we're caught up with
         // ::ChainActive().Tip().
         LOCK(cs_main);
-        const CBlockIndex* chain_tip = ::ChainActive().Tip();
-        const CBlockIndex* best_block_index = m_best_block_index.load();
-        if (best_block_index->GetAncestor(chain_tip->nHeight) == chain_tip) {
+        const CBlockIndex *chain_tip = ::ChainActive().Tip();
+        const CBlockIndex *best_block_index = m_best_block_index.load();
+
+        if (best_block_index->GetAncestor(chain_tip->nHeight) == chain_tip)
             return true;
-        }
     }
 
     LogPrintf("%s: %s is catching up on block notifications\n", __func__, GetName());
@@ -302,6 +313,7 @@ void BaseIndex::Start()
     // Need to register this ValidationInterface before running Init(), so that
     // callbacks are not missed if Init sets m_synced to true.
     RegisterValidationInterface(this);
+
     if (!Init()) {
         FatalError("%s: %s failed to initialize", __func__, GetName());
         return;
@@ -315,7 +327,6 @@ void BaseIndex::Stop()
 {
     UnregisterValidationInterface(this);
 
-    if (m_thread_sync.joinable()) {
+    if (m_thread_sync.joinable())
         m_thread_sync.join();
-    }
 }

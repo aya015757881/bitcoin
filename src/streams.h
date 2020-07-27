@@ -198,8 +198,7 @@ public:
  * >> and << read and write unformatted data using the above serialization templates.
  * Fills with data in linear time; some stringstream implementations take N^2 time.
  */
-class CDataStream
-{
+class CDataStream {
 protected:
     typedef CSerializeData vector_type;
     vector_type vch;
@@ -298,7 +297,7 @@ public:
     void clear()                                     { vch.clear(); nReadPos = 0; }
     iterator insert(iterator it, const char x=char()) { return vch.insert(it, x); }
     void insert(iterator it, size_type n, const char x) { vch.insert(it, n, x); }
-    value_type* data()                               { return vch.data() + nReadPos; }
+    value_type *data()                               { return vch.data() + nReadPos; }
     const value_type* data() const                   { return vch.data() + nReadPos; }
 
     void insert(iterator it, std::vector<char>::const_iterator first, std::vector<char>::const_iterator last)

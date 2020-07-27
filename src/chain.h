@@ -134,17 +134,16 @@ enum BlockStatus: uint32_t {
  * candidates to be the next block. A blockindex may have multiple pprev pointing
  * to it, but at most one of them can be part of the currently active branch.
  */
-class CBlockIndex
-{
+class CBlockIndex {
 public:
     //! pointer to the hash of the block, if any. Memory is owned by this CBlockIndex
-    const uint256* phashBlock{nullptr};
+    const uint256 *phashBlock{nullptr};
 
     //! pointer to the index of the predecessor of this block
-    CBlockIndex* pprev{nullptr};
+    CBlockIndex *pprev{nullptr};
 
     //! pointer to the index of some further predecessor of this block
-    CBlockIndex* pskip{nullptr};
+    CBlockIndex *pskip{nullptr};
 
     //! height of the entry in the chain. The genesis block has height 0
     int nHeight{0};
@@ -186,18 +185,14 @@ public:
     //! (memory only) Maximum nTime in the chain up to and including this block.
     unsigned int nTimeMax{0};
 
-    CBlockIndex()
-    {
-    }
+    CBlockIndex() { }
 
-    explicit CBlockIndex(const CBlockHeader& block)
+    explicit CBlockIndex(const CBlockHeader &block)
         : nVersion{block.nVersion},
           hashMerkleRoot{block.hashMerkleRoot},
           nTime{block.nTime},
           nBits{block.nBits},
-          nNonce{block.nNonce}
-    {
-    }
+          nNonce{block.nNonce} { }
 
     FlatFilePos GetBlockPos() const {
         FlatFilePos ret;
@@ -217,8 +212,7 @@ public:
         return ret;
     }
 
-    CBlockHeader GetBlockHeader() const
-    {
+    CBlockHeader GetBlockHeader() const {
         CBlockHeader block;
         block.nVersion       = nVersion;
         if (pprev)
@@ -230,10 +224,7 @@ public:
         return block;
     }
 
-    uint256 GetBlockHash() const
-    {
-        return *phashBlock;
-    }
+    uint256 GetBlockHash() const { return *phashBlock; }
 
     /**
      * Check whether this block's and all previous blocks' transactions have been
@@ -244,23 +235,16 @@ public:
      */
     bool HaveTxsDownloaded() const { return nChainTx != 0; }
 
-    int64_t GetBlockTime() const
-    {
-        return (int64_t)nTime;
-    }
+    int64_t GetBlockTime() const { return (int64_t)nTime; }
 
-    int64_t GetBlockTimeMax() const
-    {
-        return (int64_t)nTimeMax;
-    }
+    int64_t GetBlockTimeMax() const { return (int64_t)nTimeMax; }
 
     static constexpr int nMedianTimeSpan = 11;
 
-    int64_t GetMedianTimePast() const
-    {
+    int64_t GetMedianTimePast() const {
         int64_t pmedian[nMedianTimeSpan];
-        int64_t* pbegin = &pmedian[nMedianTimeSpan];
-        int64_t* pend = &pmedian[nMedianTimeSpan];
+        int64_t *pbegin = &pmedian[nMedianTimeSpan];
+        int64_t *pend = &pmedian[nMedianTimeSpan];
 
         const CBlockIndex* pindex = this;
         for (int i = 0; i < nMedianTimeSpan && pindex; i++, pindex = pindex->pprev)
@@ -270,8 +254,7 @@ public:
         return pbegin[(pend - pbegin)/2];
     }
 
-    std::string ToString() const
-    {
+    std::string ToString() const {
         return strprintf("CBlockIndex(pprev=%p, nHeight=%d, merkle=%s, hashBlock=%s)",
             pprev, nHeight,
             hashMerkleRoot.ToString(),
@@ -279,8 +262,7 @@ public:
     }
 
     //! Check whether this block index entry is valid up to the passed validity level.
-    bool IsValid(enum BlockStatus nUpTo = BLOCK_VALID_TRANSACTIONS) const
-    {
+    bool IsValid(enum BlockStatus nUpTo = BLOCK_VALID_TRANSACTIONS) const {
         assert(!(nUpTo & ~BLOCK_VALID_MASK)); // Only validity flags allowed.
         if (nStatus & BLOCK_FAILED_MASK)
             return false;
@@ -289,8 +271,7 @@ public:
 
     //! Raise the validity level of this block index entry.
     //! Returns true if the validity was changed.
-    bool RaiseValidity(enum BlockStatus nUpTo)
-    {
+    bool RaiseValidity(enum BlockStatus nUpTo) {
         assert(!(nUpTo & ~BLOCK_VALID_MASK)); // Only validity flags allowed.
         if (nStatus & BLOCK_FAILED_MASK)
             return false;
@@ -305,33 +286,29 @@ public:
     void BuildSkip();
 
     //! Efficiently find an ancestor of this block.
-    CBlockIndex* GetAncestor(int height);
-    const CBlockIndex* GetAncestor(int height) const;
+    CBlockIndex *GetAncestor(int height);
+    const CBlockIndex *GetAncestor(int height) const;
 };
 
-arith_uint256 GetBlockProof(const CBlockIndex& block);
+arith_uint256 GetBlockProof(const CBlockIndex &block);
 /** Return the time it would take to redo the work difference between from and to, assuming the current hashrate corresponds to the difficulty at tip, in seconds. */
-int64_t GetBlockProofEquivalentTime(const CBlockIndex& to, const CBlockIndex& from, const CBlockIndex& tip, const Consensus::Params&);
+int64_t GetBlockProofEquivalentTime(const CBlockIndex &to, const CBlockIndex &from, const CBlockIndex &tip, const Consensus::Params&);
 /** Find the forking point between two chain tips. */
-const CBlockIndex* LastCommonAncestor(const CBlockIndex* pa, const CBlockIndex* pb);
+const CBlockIndex *LastCommonAncestor(const CBlockIndex *pa, const CBlockIndex *pb);
 
 
 /** Used to marshal pointers into hashes for db storage. */
-class CDiskBlockIndex : public CBlockIndex
-{
+class CDiskBlockIndex : public CBlockIndex {
 public:
     uint256 hashPrev;
 
-    CDiskBlockIndex() {
-        hashPrev = uint256();
-    }
+    CDiskBlockIndex() { hashPrev = uint256(); }
 
-    explicit CDiskBlockIndex(const CBlockIndex* pindex) : CBlockIndex(*pindex) {
+    explicit CDiskBlockIndex(const CBlockIndex *pindex) : CBlockIndex(*pindex) {
         hashPrev = (pprev ? pprev->GetBlockHash() : uint256());
     }
 
-    SERIALIZE_METHODS(CDiskBlockIndex, obj)
-    {
+    SERIALIZE_METHODS(CDiskBlockIndex, obj) {
         int _nVersion = s.GetVersion();
         if (!(s.GetType() & SER_GETHASH)) READWRITE(VARINT_MODE(_nVersion, VarIntMode::NONNEGATIVE_SIGNED));
 
@@ -351,8 +328,7 @@ public:
         READWRITE(obj.nNonce);
     }
 
-    uint256 GetBlockHash() const
-    {
+    uint256 GetBlockHash() const {
         CBlockHeader block;
         block.nVersion        = nVersion;
         block.hashPrevBlock   = hashPrev;
@@ -364,8 +340,7 @@ public:
     }
 
 
-    std::string ToString() const
-    {
+    std::string ToString() const {
         std::string str = "CDiskBlockIndex(";
         str += CBlockIndex::ToString();
         str += strprintf("\n                hashBlock=%s, hashPrev=%s)",
